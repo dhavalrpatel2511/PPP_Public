@@ -30,3 +30,55 @@ c
      1 dN(nnodemax),dshape(ndim,nnodemax),xjaci(ndim,ndim),
      2 bmat(nnodemax*ndim),statevLocal(nsvint),stress(ntens), 
      3 ddsdde(ntens,ntens),stran(ntens),dstran(ntens),wght(ninpt)  
+c
+c
+      do i = 1, 18
+        ADIS(i) = U(i)
+        ADDIS(i) = DU(i)
+      end do
+c      
+      do i = 1, 16
+        ASTR(i) = U(i+18)
+        ADSTR(i) = DU(i+18)
+      end do
+c      
+      do i = 1, 4
+        ALAG(i) = U(i+34)
+      end do
+c      
+      do i = 1, 9
+        AX(i) = COORDS(1,i)
+        AY(i) = COORDS(2,i)
+        AREA = PROPS(1)
+        EMOD = PROPS(2)
+        ANU  = PROPS(3)
+        ADENS= PROPS(4)
+        AC_THREE = (3/5)**1/2
+        AW_THREE_A = 25/81
+        AW_THREE_B = 40/81
+        AW_THREE_C = 64/81
+        AXI_THREE(1)=-AC_THREE
+        AXI_THREE(2)= AC_THREE
+        AXI_THREE(3)= AC_THREE
+        AXI_THREE(4)=-AC_THREE
+        AXI_THREE(5)= 0
+        AXI_THREE(6)= AC_THREE
+        AXI_THREE(7)= 0
+        AXI_THREE(8)=-AC_THREE
+        AXI_THREE(9)= 0
+        AOMEGA_THREE(1)=-AC_THREE
+        AOMEGA_THREE(2)=-AC_THREE
+        AOMEGA_THREE(3)= AC_THREE
+        AOMEGA_THREE(4)= AC_THREE
+        AOMEGA_THREE(5)=-AC_THREE
+        AOMEGA_THREE(6)= 0
+        AOMEGA_THREE(7)= AC_THREE
+        AOMEGA_THREE(8)= 0
+        AOMEGA_THREE(9)= 0
+      end do
+c
+      do i = 1, 4
+        AW_THREE(i) = AW_THREE_A
+        AW_THREE(i+4) = AW_THREE_B
+        AW_THREE(9) = AW_THREE_C
+      end do
