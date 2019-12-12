@@ -2,7 +2,7 @@
 ! User Element subroutine for Strain Gradient Elasticity model.
 ! Dhaval Rasheshkumar Patel
 ! dhavalrpatel2511@gmail.com
-c**********************************************************************
+c***********************************************************************
       subroutine uel(rhs,amatrx,svars,energy,ndofel,nrhs,nsvars,props,
      1 nprops,coords,mcrd,nnode,u,du,v,a,jtype,time,dtime,kstep,kinc,
      2 jelem,params,ndload,jdltyp,adlmag,predef,npredf,lflags,mlvarx,  
@@ -90,8 +90,8 @@ c
          
          
 
-
-c**********************************************************************
+c***********************************************************************
+c***********************************************************************
       subroutine shapefcn_U(kintk,ninpt,nnode,ndim,dN_U,dNd_xi)
 c
       include 'aba_param.inc'
@@ -157,8 +157,8 @@ c     derivative d(Ni)/d(omega)
         dNd_xi(2,9) = -2.d0*omega+2.d0*xi*xi*omega     
       return
       end
-c**********************************************************************
-c**********************************************************************
+c***********************************************************************
+c***********************************************************************
       subroutine shapefcn_PSI(kintk,ninpt,nnode,ndim,dN_PSI,dNd_PSI)
 c
       include 'aba_param.inc'
@@ -198,4 +198,92 @@ c     derivative d(Ni)/d(omega)
             dNd_PSI(2,4) = 0.25d0*(1.d0-xi)
       return
       end
-c**********************************************************************
+c***********************************************************************
+c***********************************************************************
+      subroutine jacobian_xi(jelem,ndim,nnode,coords,dNd_xi,djac,
+    1 xjaci,pnewdt)
+c
+c     Notation: djac - Jac determinant; xjaci - inverse of Jac matrix
+c
+      include 'aba_param.inc'
+      parameter(maxDof=2)
+c
+      dimension xjac(maxDof,maxDof),xjaci(ndim,*),coords(3,*),
+    1 dNd_xi(ndim,*)
+c
+      do i = 1, ndim
+        do j = 1, ndim
+          xjac(i,j)  = 0.d0
+          xjaci(i,j) = 0.d0
+        end do
+      end do
+c
+      do inod= 1, nnode
+         do idim = 1, ndim
+           do jdim = 1, ndim
+             xjac(jdim,idim) = xjac(jdim,idim) +
+    1        dNd_xi(jdim,inod)*coords(idim,inod)
+           end do
+         end do
+      end do
+c
+      djac = xjac(1,1)*xjac(2,2) - xjac(1,2)*xjac(2,1)
+       if (djac .gt. 0.d0) then
+         ! jacobian is positive - o.k.
+         xjaci(1,1) =  xjac(2,2)/djac
+         xjaci(2,2) =  xjac(1,1)/djac
+         xjaci(1,2) = -xjac(1,2)/djac
+         xjaci(2,1) = -xjac(2,1)/djac
+       else
+         ! negative or zero jacobian
+         write(7,*)'WARNING: element',jelem,'has neg. Jacobian'
+         pnewdt = 0.25d0
+       endif
+      return
+      end
+c***********************************************************************
+c***********************************************************************
+      subroutine jacobian_psi(jelem,ndim,nnode,coords,dNd_PSI,djac,
+    1 xjaci_psi,pnewdt)
+c
+c     Notation: djac - Jac determinant; xjaci - inverse of Jac matrix
+c
+      include 'aba_param.inc'
+      parameter(maxDof=2)
+c
+      dimension xjac_psi(maxDof,maxDof),xjaci_psi(ndim,*),coords(3,*),
+    1 dNd_PSI(ndim,*)
+c
+      do i = 1, ndim
+        do j = 1, ndim
+          xjac_psi(i,j)  = 0.d0
+          xjaci_psi(i,j) = 0.d0
+        end do
+      end do
+c
+      do inod= 1, 4
+         do idim = 1, ndim
+           do jdim = 1, ndim
+             xjac_psi(jdim,idim) = xjac_psi(jdim,idim) +
+    1        dNd_PSI(jdim,inod)*coords(idim,inod)
+           end do
+         end do
+      end do
+c
+      djac_psi = xjac_psi(1,1)*xjac_psi(2,2) - 
+    1            xjac_psi(1,2)*xjac_psi(2,1)
+       if (djac .gt. 0.d0) then
+         ! jacobian is positive - o.k.
+         xjaci_psi(1,1) =  xjac_psi(2,2)/djac
+         xjaci_psi(2,2) =  xjac_psi(1,1)/djac
+         xjaci_psi(1,2) = -xjac_psi(1,2)/djac
+         xjaci_psi(2,1) = -xjac_psi(2,1)/djac
+       else
+         ! negative or zero jacobian
+         write(7,*)'WARNING: element',jelem,'has neg. Jacobian'
+         pnewdt = 0.25d0
+       endif
+      return
+      end
+c***********************************************************************
+c***********************************************************************
