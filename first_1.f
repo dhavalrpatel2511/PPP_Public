@@ -82,14 +82,21 @@ c
         AW_THREE(i+4) = AW_THREE_B
         AW_THREE(9) = AW_THREE_C
       end do
-c
 c 
+      do kintk = 1, ninpt
+c
+!       Evaluate shape functions and derivatives
+         call shapefcn_U(kintk,ninpt,nnode,ndim,dN_U,dNd_xi)
+         
+         
+
+
 c**********************************************************************
       subroutine shapefcn_U(kintk,ninpt,nnode,ndim,dN_U,dNd_xi)
 c
       include 'aba_param.inc'
 c
-      parameter (gaussCoord=0.774596669241483d0)
+      parameter (gausspoint=0.774596669241483d0)
       dimension dN_U(nnode),dNd_xi(ndim,nnode),coord28(2,9)
 c     
       data  coord28 /-1.d0, -1.d0,
@@ -104,9 +111,9 @@ c
 C     
 C  2D 9-nodes
 c
-c     determine (g,h,r)
-        xi = coord28(1,kintk)*gaussCoord
-        omega = coord28(2,kintk)*gaussCoord
+c     determine (xi,omega)
+        xi = coord28(1,kintk)*gausspoint
+        omega = coord28(2,kintk)*gausspoint
 c
 c     shape functions
         dN_U(1) = 0.25d0*xi*(xi-1.d0)*omega*(omega-1.d0)
@@ -119,7 +126,7 @@ c     shape functions
         dN_U(8) = 0.5d0*xi*(xi-1.d0)*(1.d0-omega*omega)
         dN_U(9) = (1.d0-xi*xi)*(1.d0-omega*omega)      
 c
-c     derivative d(Ni)/d(g)
+c     derivative d(Ni)/d(xi)
         dNd_xi(1,1) = 0.5d0*xi*omega-0.25d0*omega*omega+0.25d0*omega
       &  +0.5d0*xi*omega*omega
         dNd_xi(1,2) = -0.5d0*xi*omega+0.5d0*xi*omega*omega
@@ -134,7 +141,7 @@ c     derivative d(Ni)/d(g)
         dNd_xi(1,8) = -0.5d0+0.5d0*omega*omega+xi-xi*omega*omega
         dNd_xi(1,9) = -2.d0*xi+2.d0*xi*omega*omega
 c
-c     derivative d(Ni)/d(h)
+c     derivative d(Ni)/d(omega)
         dNd_xi(2,1) = -0.25d0*omega*omega-0.5d0*xi*omega+0.25d0*xi
       &  +0.5d0*xi*xi*omega
         dNd_xi(2,2) = -0.25d0*omega*omega-0.5d0*xi*xi*omega
@@ -148,6 +155,47 @@ c     derivative d(Ni)/d(h)
         dNd_xi(2,7) = -0.5d0*xi*xi+omega-xi*xi*omega+0.5d0
         dNd_xi(2,8) = xi*omega-xi*xi*omega
         dNd_xi(2,9) = -2.d0*omega+2.d0*xi*xi*omega     
+      return
+      end
+c**********************************************************************
+c**********************************************************************
+      subroutine shapefcn_PSI(kintk,ninpt,nnode,ndim,dN_PSI,dNd_PSI)
+c
+      include 'aba_param.inc'
+c
+      parameter (gausspoint=0.774596669241483d0)
+      dimension dN_PSI(nnode),dNd_PSI(ndim,nnode),coord28(2,9)
+c
+      data  coord28 /-1.d0, -1.d0,
+            2                0.d0, -1.d0,
+            3                1.d0, -1.d0,
+            4               -1.d0,  0.d0,
+            5                0.d0,  0.d0,
+            6                1.d0,  0.d0,
+            7               -1.d0,  1.d0,
+            8                0.d0,  1.d0,
+            9                1.d0,  1.d0/
+C
+C  2D 9-nodes
+c
+c     determine (xi,omega)
+            xi = coord28(1,kintk)*gausspoint
+            omega = coord28(2,kintk)*gausspoint
+c     shape functions
+            dN_PSI(1) = 0.25d0*(1.d0-xi)*(1.d0-omega)
+            dN_PSI(2) = 0.25d0*(1.d0+xi)*(1.d0-omega)
+            dN_PSI(3) = 0.25d0*(1.d0+xi)*(1.d0+omega)
+            dN_PSI(4) = 0.25d0*(1.d0-xi)*(1.d0+omega)
+c     derivative d(Ni)/d(xi)
+            dNd_PSI(1,1) = 0.25d0*(-1.d0+omega)
+            dNd_PSI(1,2) = 0.25d0*(1.d0-omega)
+            dNd_PSI(1,3) = 0.25d0*(1.d0+omega)
+            dNd_PSI(1,4) = 0.25d0*(-1.d0-omega)
+c     derivative d(Ni)/d(omega)
+            dNd_PSI(2,1) = 0.25d0*(-1.d0+xi)
+            dNd_PSI(2,2) = 0.25d0*(-1.d0-xi)
+            dNd_PSI(2,3) = 0.25d0*(1.d0+xi)
+            dNd_PSI(2,4) = 0.25d0*(1.d0-xi)
       return
       end
 c**********************************************************************
