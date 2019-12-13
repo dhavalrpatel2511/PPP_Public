@@ -82,11 +82,25 @@ c
         AW_THREE(i+4) = AW_THREE_B
         AW_THREE(9) = AW_THREE_C
       end do
-c 
+c*********************************************************************** 
       do kintk = 1, ninpt
 c
 !       Evaluate shape functions and derivatives
          call shapefcn_U(kintk,ninpt,nnode,ndim,dN_U,dNd_xi)
+         call shapefcn_PSI(kintk,ninpt,nnode,ndim,dN_PSI,dNd_PSI)
+c
+!       Evaluate Jacobian of displacement and psi shape function matrix
+         call jacobian_xi(jelem,ndim,nnode,coords,dNd_xi,djac,xjaci,
+    1         pnewdt)
+         call jacobian_omega(jelem,ndim,nnode,coords,dNd_PSI,djac,
+    1         xjaci_psi,pnewdt)
+c
+         if (pnewdt .lt. pnewdtLocal) pnewdtLocal = pnewdt
+c
+!       Evaluate B_matrix for displcement and psi 
+         call bmatrix_U(xjaci,dNd_xi,nnode,ndim,bmat_u)
+         call bmatrix_PSI(xjaci_psi,dNd_PSI,nnode,ndim,bmat_psi)
+c
          
          
 
@@ -287,3 +301,51 @@ c
       end
 c***********************************************************************
 c***********************************************************************
+      subroutine bmatrix_U(xjaci,dNd_xi,nnode,ndim,bmat_u)
+c
+c     Notation: bmat(i) ....dN1/dx, dN1/dy, dN2/dx, dN2/dy...
+          include 'aba_param.inc'
+          dimension bmat_u(*),dNd_xi(ndim,*),xjaci(ndim,*)
+c
+          do i = 1, nnode*ndim
+              bmat_u(i) = 0.d0
+          end do
+c
+          do inod = 1, nnode
+           do ider = 1, ndim
+            do idim = 1, ndim
+             irow = idim + (inod - 1)*ndim
+             bmat_u(irow)=bmat_u(irow)+xjaci(idim,ider)*dNd_xi(ider,inod)
+            end do
+           end do
+          end do
+c
+          return
+          end
+c***********************************************************************
+c***********************************************************************
+      subroutine bmatrix_PSI(xjaci_psi,dNd_PSI,nnode,ndim,bmat_psi)
+c
+c     Notation: bmat(i) ....dN1/dx, dN1/dy, dN2/dx, dN2/dy...
+            include 'aba_param.inc'
+            dimension bmat_psi(*),dshape(ndim,*),xjaci(ndim,*)
+c
+            do i = 1, nnode*ndim
+                  bmat_psi(i) = 0.d0
+            end do
+c
+            do inod = 1, 4
+              do ider = 1, ndim
+                do idim = 1, ndim
+                  irow = idim + (inod - 1)*ndim
+                  bmat_psi(irow)=bmat_psi(irow)+
+    1                            xjaci_psi(idim,ider)*dNd_PSI(ider,inod)
+                end do
+              end do
+            end do
+C            
+      return
+      end
+c***********************************************************************
+c***********************************************************************
+
