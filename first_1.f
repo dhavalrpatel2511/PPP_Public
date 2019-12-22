@@ -101,6 +101,46 @@ c
          call bmatrix_U(xjaci,dNd_xi,nnode,ndim,bmat_u)
          call bmatrix_PSI(xjaci_psi,dNd_PSI,nnode,ndim,bmat_psi)
 c
+c***********************************************************************
+!       assembly of N_matrix
+c
+         do i = 1, 9
+            Nmatrix(1,(2*i-1)) = dN_U(i)
+            Nmatrix(2,(2*i)) = dN_U(i)
+c             Nmatrix(1,i) = Nmatrix(1,i)+dN_U(i)
+c             Nmatrix(2,i) = Nmatrix(2,i)+dN_U(i)
+c                
+         end do
+c
+c         
+!       assembly of M_matrix    
+         do i = 1, 2*nnode
+            Mmatrix(1,i) = 0.d0
+            Mmatrix(2,i) = 0.d0
+            Mmatrix(3,i) = 0.d0
+            Mmatrix(4,i) = 0.d0
+         end do   
+         do i = 1, nnode
+            Mmatrix(1,2*i-1) = bmat_u(2*i-1)
+            Mmatrix(2,2*i)   = bmat_u(2*i)
+            Mmatrix(3,2*i-1) = bmat_u(2*i-1)
+            Mmatrix(4,2*i)   = bmat_u(2*i)
+         end do  
+c    
+!       assembly of B_matrix    
+         do i = 1, 2*nnode
+            Bmatrix(1,i) = 0.d0
+            Bmatrix(2,i) = 0.d0
+            Bmatrix(3,i) = 0.d0
+         end do   
+         do i = 1, nnode
+            Bmatrix(1,2*i-1) = bmat_u(2*i-1)
+            Bmatrix(2,2*i)   = bmat_u(2*i)
+            Bmatrix(3,2*i-1) = bmat_u(2*i)
+            Bmatrix(3,2*i)   = bmat_u(2*i-1)
+         end do
+c
+!       assembly of N_PSI_matrix 
          
          
 
