@@ -226,7 +226,33 @@ c
           end do  
          end do
 c
-c         
+c
+         !relaxedstraingradient = 0.d0
+         !delta_relaxedstraingradient = 0.d0
+	     T_Bpsimatrix = Transpose(Bpsimatrix)
+         do i = 1, 16
+          do j = 1, 6
+            relaxedstraingradient(j,kintk)  
+     1      =relaxedstraingradient(j,kintk) 
+     1      +T_Bpsimatrix(i,j)*relaxed_strain(i)
+c 
+c       
+            delta_relaxedstraingradient(j,kintk)
+     1      =delta_relaxedstraingradient(j,kintk) 
+     1      +T_Bpsimatrix(i,j)*delta_relaxed_strain(i)
+          end do
+         end do
+c
+c
+         !Langrangemulti = 0.d0
+         do i = 1, 4
+          do j = 1, 4
+            Langrangemulti(j,kintk) = Langrangemulti(j,kintk) 
+     1      +Nrhomatrix(i,j)*lagrange_multi(i)
+          end do
+         end do
+c
+c                  
 c***********************************************************************
 c***********************************************************************
       subroutine shapefcn_U(kintk,ninpt,nnode,ndim,dN_U,dNd_xi)
