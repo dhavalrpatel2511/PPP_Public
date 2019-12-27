@@ -101,6 +101,8 @@ c
          call bmatrix_U(xjaci,dNd_xi,nnode,ndim,bmat_u)
          call bmatrix_PSI(xjaci_psi,dNd_PSI,nnode,ndim,bmat_psi)
 c
+            
+c
 c***********************************************************************
 !       assembly of N_matrix
 c
@@ -120,6 +122,7 @@ c
             Mmatrix(3,i) = 0.d0
             Mmatrix(4,i) = 0.d0
          end do   
+c
          do i = 1, nnode
             Mmatrix(1,2*i-1) = bmat_u(2*i-1)
             Mmatrix(2,2*i)   = bmat_u(2*i)
@@ -133,6 +136,7 @@ c
             Bmatrix(2,i) = 0.d0
             Bmatrix(3,i) = 0.d0
          end do   
+c
          do i = 1, nnode
             Bmatrix(1,2*i-1) = bmat_u(2*i-1)
             Bmatrix(2,2*i)   = bmat_u(2*i)
@@ -141,9 +145,88 @@ c
          end do
 c
 !       assembly of N_PSI_matrix 
-         
-         
-
+         do i = 1, 16
+            Npsimatrix(1,i) = 0.d0
+            Npsimatrix(2,i) = 0.d0
+            Npsimatrix(3,i) = 0.d0
+            Npsimatrix(4,i) = 0.d0
+         end do
+c
+         do i = 1, 4
+            Npsimatrix(1,4*i-3) = dN_PSI(i)
+            Npsimatrix(2,4*i-2) = dN_PSI(i)
+            Npsimatrix(3,4*i-1) = dN_PSI(i)
+            Npsimatrix(4,4*i)   = dN_PSI(i)
+         end do
+c
+!       assembly of B_PSI_matrix 
+         do i = 1, 16
+            Bpsimatrix(1,i) = 0.d0
+            Bpsimatrix(2,i) = 0.d0
+            Bpsimatrix(3,i) = 0.d0
+            Bpsimatrix(4,i) = 0.d0
+            Bpsimatrix(5,i) = 0.d0
+            Bpsimatrix(6,i) = 0.d0
+         end do
+c
+         do i = 1, 4
+            Bpsimatrix(1,4*i-3) = bmat_PSI(2*i-1)
+            Bpsimatrix(2,4*i-2) = bmat_PSI(2*i)
+            Bpsimatrix(3,4*i-1) = bmat_PSI(2*i-1)
+            Bpsimatrix(4,4*i)   = bmat_PSI(2*i)
+            Bpsimatrix(5,4*i-3) = bmat_PSI(2*i)
+            Bpsimatrix(5,4*i-2) = bmat_PSI(2*i-1)
+            Bpsimatrix(6,4*i-1) = bmat_PSI(2*i)
+            Bpsimatrix(6,4*i)   = bmat_PSI(2*i-1)
+         end do
+c
+!       assembly of N_rho
+         do i = 1, 4
+            Nrhomatrix(1,i) = 0.d0
+            Nrhomatrix(2,i) = 0.d0 
+            Nrhomatrix(3,i) = 0.d0
+            Nrhomatrix(4,i) = 0.d0
+         end do
+         do i = 1, 4
+            Nrhomatrix(i,i) = 1.d0
+         end do
+c
+********************************************************
+c         
+      !  update of state variables.
+         !GradVariable = 0.d0
+         T_Mmatrix = Transpose(Mmatrix)		
+         do i = 1, 18
+          do j = 1, 4
+            GradVariable(j,kintk) = GradVariable(j,kintk) 
+     1      +T_Mmatrix(i,j)*displacement(i)
+          end do
+         end do  
+c
+c
+	     T_Bmatrix = Transpose(Bmatrix)
+         !strain = 0.d0
+         !Deltastrain = 0.d0
+         do i = 1, 18
+          do j = 1, 3
+            strain(j,kintk) = strain(j,kintk) 
+     1      + T_Bmatrix(i,j)*displacement(i)
+            Deltastrain(j,kintk) = Deltastrain(j,kintk) 
+     1      +T_Bmatrix(i,j)*delta_displacement(i)
+          end do
+         end do
+c
+c
+	     T_Npsimatrix = Transpose(Npsimatrix)
+         !relaxedstrain = 0.d0
+         do i = 1, 16
+          do j = 1, 4
+            relaxedstrain(j,kintk) = relaxedstrain(j,kintk) 
+     1      +T_Npsimatrix(i,j)*relaxed_strain(i)
+          end do  
+         end do
+c
+c         
 c***********************************************************************
 c***********************************************************************
       subroutine shapefcn_U(kintk,ninpt,nnode,ndim,dN_U,dNd_xi)
