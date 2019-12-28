@@ -254,6 +254,24 @@ c
 c
 c                  
 c***********************************************************************
+!       call the KUMAT to find the state variables Sigma and Tau
+!       and also get U_psilon and Lambda from KUMAT as output.
+c
+         call KUMAT(Sigma,Tau,U_psilon,Lambda,kintk,lemda,mue,
+     1   Deltastrain,delta_relaxedstraingradient)
+c     
+!       Print the State variable Sigma in .dat file.     
+*         write(6,*) "this is Sigma"
+*         write(6,*) Sigma(:,1)
+*         do i = 1, size(Sigma,kintk)
+*            write(6,'(20G12.4)')  Sigma(i,:)
+*         end do
+!       Print the State variable Tau in .dat file.
+*         write(6,*) "this is Tau"
+*         write(6,*) Tau(:,kintk)
+*         do i = 1, size(Tau,1)
+*            write(6,'(20G12.4)')  Tau(i,:)
+*         end do
 c***********************************************************************
       subroutine shapefcn_U(kintk,ninpt,nnode,ndim,dN_U,dNd_xi)
 c
