@@ -272,6 +272,21 @@ c
 *         do i = 1, size(Tau,1)
 *            write(6,'(20G12.4)')  Tau(i,:)
 *         end do
+c
+c
+c
+!       store state variables Sigma and Tau in Svars vector. :
+         do i = 1, 3
+            svars(i+(kintk-1)*9) = Sigma(i,kintk)
+         end do
+         do i = 4, 9
+            svars(i+(kintk-1)*9) = Tau(i-3,kintk)
+         end do
+!       Print the State variable vector in .dat file.         
+*         write(6,*) "this is state vars"
+*         do i = 1, 9
+*            write(6,'(20G12.4)')  svars(i)
+*         end do
 c***********************************************************************
       subroutine shapefcn_U(kintk,ninpt,nnode,ndim,dN_U,dNd_xi)
 c
