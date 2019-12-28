@@ -497,4 +497,68 @@ C
       end
 c***********************************************************************
 c***********************************************************************
-
+      subroutine KUMAT(Sigma,Tau,U_psilon,Lambda,kintk,lemda,mue,
+     1 Deltastrain,delta_relaxedstraingradient)
+c
+      double precision :: Sigma,Tau,C_matrix,D_matrix
+c
+      dimension C_matrix(3,3), D_matrix(6,6), sigma(3,9), Tau(6,9),
+     1 Lambda(6,6), U_psilon(3,3), Deltastrain(3,9),
+     2 delta_relaxedstraingradient(6,9)
+*      write(*,*) "this is lemda and mue"
+*      write(*,*) lemda
+*      write(*,*) mue
+c
+      C_matrix(1,1) = lemda + 2.d0*mue
+      C_matrix(1,2) = lemda
+      C_matrix(1,3) = 0.d0
+      C_matrix(2,1) = lemda
+      C_matrix(2,2) = lemda + 2.d0*mue
+      C_matrix(2,3) = 0.d0
+      C_matrix(3,1) = 0.d0
+      C_matrix(3,2) = 0.d0
+      C_matrix(3,3) = 0.5d0*mue
+c
+*      write(*,*) "this is C_matrix"
+*      do i = 1, size(C_matrix,1)
+*        write(*,'(20G12.4)')  C_matrix(i,:)
+*      end do
+      do i = 1, 6
+         do j = 1, 6
+            D_matrix(j,i) = 0.d0
+         end do
+      end do
+      D_matrix(2,2) = 1.d0
+      D_matrix(3,3) = 1.d0
+      D_matrix(2,6) = -0.5d0
+      D_matrix(3,5) = -0.5d0
+      D_matrix(5,3) = -0.5d0
+      D_matrix(6,2) = -0.5d0
+      D_matrix(5,5) = 0.25d0
+      D_matrix(6,6) = 0.25d0
+c      
+*      write(*,*) "this is D_matrix"
+*      do i = 1, size(D_matrix,1)
+*        write(*,'(20G12.4)')  D_matrix(i,:)
+*      end do
+c
+      do i = 1, 3
+         do j = 1, 3
+            Sigma(i,kintk) = Sigma(i,kintk) 
+     1      +C_matrix(i,j)*Deltastrain(j,kintk)
+c
+            U_psilon(i,j) = C_matrix(i,j)
+         end do
+      end do
+c
+      do i = 1, 6
+         do j = 1, 6
+            Tau(i,kintk) = Tau(i,kintk) 
+     1       +D_matrix(i,j)*delta_relaxedstraingradient(j,kintk)
+            Lambda(i,j) = D_matrix(i,j)
+         end do
+      end do
+c      
+      return 
+      end subroutine KUMAT
+c***********************************************************************
