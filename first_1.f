@@ -287,6 +287,46 @@ c
 *         do i = 1, 9
 *            write(6,'(20G12.4)')  svars(i)
 *         end do
+c
+!-------Find the Element Stiffness Matrices:----------------------------
+c
+!       Find the UU_stiffness matrix - dimension(18*18)
+         do i = 1, 18
+          do j = 1, 18
+           do k = 1, 3
+            do l = 1, 3
+               stiffness_UU(i,j) = stiffness_UU(i,j) 
+     1         +T_Bmatrix(i,k)*U_psilon(k,l)*T_Bmatrix(j,l)*djac
+     1         *Gauss_weight(kintk)
+            end do
+           end do
+          end do
+         end do
+!       Print the stiffness_UU matrix in .dat file.           
+*         write(6,*) "this is sti_UU"
+*         do i = 1, size(stiffness_UU,1)
+*            write(6,'(20G12.4)')  stiffness_UU(i,:)
+*         end do
+c
+c
+!       Find the PsiPsi_stiffness matrix - dimension(16*16)
+         do i = 1, 16
+          do j = 1, 16
+           do k = 1, 6
+             do l = 1, 6
+               stiffness_PsiPsi(i,j) = stiffness_PsiPsi(i,j) 
+     1         +T_Bpsimatrix(i,k)*Lambda(k,l)*T_Bpsimatrix(j,l)
+     1          *djac_psi*Gauss_weight(kintk)
+             end do
+           end do
+          end do
+         end do
+!       Print the stiffness_PsiPsi matrix in .dat file.          
+*         write(6,*) "this is sti_psipsi"
+*         do i = 1, size(stiffness_PsiPsi,1)
+*            write(6,'(20G12.4)')  stiffness_PsiPsi(i,:)
+*         end do
+c
 c***********************************************************************
       subroutine shapefcn_U(kintk,ninpt,nnode,ndim,dN_U,dNd_xi)
 c
