@@ -327,6 +327,39 @@ c
 *            write(6,'(20G12.4)')  stiffness_PsiPsi(i,:)
 *         end do
 c
+c
+!       Find the Urho_stiffness matrix - dimension(18*4)
+         do i = 1, 18
+          do j = 1, 4
+           do k = 1, 4
+               stiffness_Urho(i,j) = stiffness_Urho(i,j) 
+     1        +T_Mmatrix(i,k)*Nrhomatrix(j,k)*djac*Gauss_weight(kintk)
+           end do
+          end do
+         end do
+!       Print the stiffness_Urho matrix in .dat file.        
+*         write(6,*) "this is stiffness_Urho"
+*         do i = 1, size(stiffness_Urho,1)
+*            write(6,'(20G12.4)')  stiffness_Urho(i,:)
+*         end do
+c
+c
+!       Find the psirho_stiffness matrix - dimension(16*4)
+         do i = 1, 16
+          do j = 1, 4
+           do k = 1, 4
+               stiffness_psirho(i,j) = stiffness_psirho(i,j) 
+     1         +T_Npsimatrix(i,k)*Nrhomatrix(j,k)*djac_psi
+     1         *Gauss_weight(kintk)
+           end do
+          end do
+         end do
+!       Print the stiffness_psirho matrix in .dat file.         
+*         write(6,*) "this is stiffness_psirho"
+*         do i = 1, size(stiffness_psirho,1)
+*            write(6,'(20G12.4)')  stiffness_psirho(i,:)
+*         end do
+c
 c***********************************************************************
       subroutine shapefcn_U(kintk,ninpt,nnode,ndim,dN_U,dNd_xi)
 c
