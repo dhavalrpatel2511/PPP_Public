@@ -360,6 +360,22 @@ c
 *            write(6,'(20G12.4)')  stiffness_psirho(i,:)
 *         end do
 c
+c
+!       Find the Mass_U matrix - dimension(18*18)
+         T_Nmatrix = Transpose(Nmatrix)
+         do i = 1, 18
+          do j = 1, 18
+           do k = 1, 2
+               Mass_U(i,j) = Mass_U(i,j) + Density*T_Nmatrix(i,k)
+     1         *T_Nmatrix(j,k)*djac*Gauss_weight(kintk)
+           end do
+          end do
+         end do
+!       Print the Mass_U matrix in .dat file.          
+*         write(6,*) "this is Mass_U"
+*         do i = 1, size(Mass_U,1)
+*            write(6,'(20G12.4)')  Mass_U(i,:)
+*         end do
 c***********************************************************************
       subroutine shapefcn_U(kintk,ninpt,nnode,ndim,dN_U,dNd_xi)
 c
