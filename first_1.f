@@ -400,6 +400,43 @@ c
             write(6,'(20G12.4)')  F_vector(i)
          end do
 c
+c
+!       Find the R_vector which includes the internal forces due to
+!       the relaxed strain of nodes(1,2,3,4).
+         do i = 1, 16
+            do j = 1, 6
+              R_vector(i) = R_vector(i) + T_Bpsimatrix(i,j)*Tau(j,kintk)
+     1        *djac_psi*Gauss_weight(kintk)
+            end do
+            do j = 1, 4
+               R_vector(i) = R_vector(i) + T_Npsimatrix(i,j)
+     1          *Langrangemulti(j,kintk)*djac_psi*Gauss_weight(kintk)
+            end do
+         end do
+!       Print the R_vactor in .dat file.         
+         write(6,*) "R_vector"
+         do i = 1, 16
+            write(6,'(20G12.4)')  R_vector(i)
+         end do
+c
+c
+!       Find the S_vector which includes the internal forces due to
+!       the langangen multiplier of centre(last) node.
+         do i = 1, 4
+            do j = 1, 4
+               S_vector(i) = S_vector(i) + Nrhomatrix(i,j)
+     1        *(relaxedstrain(j,kintk)*djac_psi-GradVariable(j,kintk)
+     1        *djac)*Gauss_weight(kintk)
+            end do
+         end do
+!       Print the S_vactor in .dat file.         
+         write(6,*) "S_vector"
+         do i = 1, 4
+            write(6,'(20G12.4)')  S_vector(i)
+         end do
+c
+      end do 
+!       loop over integration points is end.
 c***********************************************************************
       subroutine shapefcn_U(kintk,ninpt,nnode,ndim,dN_U,dNd_xi)
 c
