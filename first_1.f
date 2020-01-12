@@ -377,6 +377,30 @@ c
 *            write(6,'(20G12.4)')  Mass_U(i,:)
 *         end do
 c***********************************************************************
+c
+!       Find the internal force vectors : 
+c
+!       Find the F_vector which includes the internal forces due to
+!       the displcement of all nodes.
+         do i = 1, 18 
+            do j = 1, 3
+               F_vector(i) = F_vector(i) + T_Bmatrix(i,j)*Sigma(j,kintk)
+     1         *djac*Gauss_weight(kintk)
+*                write(*,*) Bmatrix(i,j)*Sigma(j,kintk)
+*     1               *djac*Gauss_weight(kintk)
+            end do
+            do j = 1, 4
+               F_vector(i) = F_vector(i) - T_Mmatrix(i,j) 
+     1         *Langrangemulti(j,kintk)*djac*Gauss_weight(kintk)  
+            end do
+         end do
+!       Print the F_vactor in .dat file.         
+         write(6,*) "F_vector"
+         do i = 1, 18
+            write(6,'(20G12.4)')  F_vector(i)
+         end do
+c
+c***********************************************************************
       subroutine shapefcn_U(kintk,ninpt,nnode,ndim,dN_U,dNd_xi)
 c
       include 'aba_param.inc'
