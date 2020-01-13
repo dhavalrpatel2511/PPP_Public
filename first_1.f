@@ -438,6 +438,72 @@ c
       end do 
 !       loop over integration points is end.
 c***********************************************************************
+!       Assembaly of AMATRX and RHS acorrding to the arragement of 
+!       degrees of freedom of the all 9 nodes of the element.
+c      
+       tra_stiffness_Urho = TRANSPOSE(stiffness_Urho)   
+       tra_stiffness_psirho = TRANSPOSE(stiffness_psirho) 
+*      write(*,*) "tra_stiffness_Urho"
+*      do i = 1, size(tra_stiffness_Urho,1)
+*          write(*,'(20G12.4)')  tra_stiffness_Urho(i,:)
+*      end do
+!       Print the amat matrix to check the intialization of it.
+*      write(*,*) "amat"
+*      do i = 1, size(amat,1)
+*          write(*,'(20G12.4)')  amat(i,:)
+*      end do
+c
+C           ___                              ____
+!      K = |                                     |
+!          | K_UU          0          -K_urho    |
+!          |  0         K_psipsi       K_psirho  |
+!          |-T_K_urho   T_K_psirho        0      |
+!          |___                              ____|
+c
+c
+!     amat(1:18,1:18) =  stiffness_UU(1:18,1:18)     
+      do i = 1, 18
+         do j = 1, 18
+            amatrx(i,j) = amatrx(i,j) + stiffness_UU(i,j)
+         end do
+      end do
+c
+!     amat(19:34,19:34) =  stiffness_PsiPsi(1:16,1:16)
+      do i = 19, 34
+         do j = 19, 34
+            amatrx(i,j) = amatrx(i,j) + stiffness_PsiPsi(i-18,j-18)   
+         end do
+      end do
+c
+!     amat(35:38,19:34) =  tra_stiffness_psirho(1:4,1:16)
+      do i = 35, 38
+         do j = 19, 34
+            amatrx(i,j) = amatrx(i,j) + tra_stiffness_psirho(i-34,j-18)
+         end do
+      end do
+c
+!     amat(35:38,1:18) =  tra_stiffness_Urho(1:4,1:18)
+      do i = 35, 38
+         do j = 1, 18
+            amatrx(i,j) = amatrx(i,j) - tra_stiffness_Urho(i-34,j)
+         end do
+      end do
+c
+!     amat(1:18,35:38) =  stiffness_Urho(1:18,1:4)
+      do i = 1, 18
+         do j = 35, 38
+            amatrx(i,j) = amatrx(i,j) - stiffness_Urho(i,j-34)
+         end do
+      end do
+c
+!     amat(19:34,35:38) =  stiffness_psirho(1:16,1:4)
+      do i = 19, 34
+         do j = 35, 38
+            amatrx(i,j) = amatrx(i,j) + stiffness_psirho(i-18,j-34)
+         end do
+      end do
+c
+c***********************************************************************
       subroutine shapefcn_U(kintk,ninpt,nnode,ndim,dN_U,dNd_xi)
 c
       include 'aba_param.inc'
