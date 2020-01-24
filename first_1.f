@@ -503,6 +503,49 @@ c
          end do
       end do
 c
+c
+!     assign the 0 value to the diagonal elements(35,36,37,38) of amat.
+      do i=35, 38
+	     amatrx(i,i) = 1.0e-10
+      end do
+c
+c
+!     print the amatrx into the .dat file.      
+      write(6,*) "amatrx"
+      do i = 1, size(amatrx,1)
+          write(6,'(40G12.4)')  amatrx(i,:)
+      end do
+c
+c      
+!     Assemble the RHS matrix.
+!     rhs(1:18) = F_vector(1:18)
+      do i = 1, 18
+         rhs(i) = rhs(i) - F_vector(i)
+      end do
+c
+c
+!     rhs(19:34) = R_vector(1:16)
+      do i = 19, 34
+         rhs(i) = rhs(i) - R_vector(i-18)
+      end do
+c
+c
+!     rhs(35:38) = S_vector(1:4)
+      do i = 35, 38
+         rhs(i) = rhs(i) - S_vector(i-34)
+      end do
+c
+c
+!     print the RHS matrix into the .dat file.      
+      write(6,*) "rhs"
+      do i = 1, 38
+          write(6,'(20G12.4)')  rhs(i)
+      end do
+c
+c
+      return
+      end subroutine uel       
+!     END of the main subroutine UEL.       
 c***********************************************************************
       subroutine shapefcn_U(kintk,ninpt,nnode,ndim,dN_U,dNd_xi)
 c
