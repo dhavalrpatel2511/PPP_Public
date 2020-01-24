@@ -63,7 +63,7 @@ for i in range(a1,a1+b1,1):
         node_number = np.int(node_number)
         New_nodes[i,1] = New_nodes[i,1] + shape_function[j-1]*nodes[node_number-1,1]        
         New_nodes[i,2] = New_nodes[i,2] + shape_function[j-1]*nodes[node_number-1,2]
-    New_elements[element_number-1,9] = i
+    New_elements[element_number-1,9] = i+1
     
 # New_nodes_column_one = np.zeros_like(New_nodes[:,0])
 # print(New_nodes[:,0]) 
