@@ -32,6 +32,13 @@ c
      3 ddsdde(ntens,ntens),stran(ntens),dstran(ntens),wght(ninpt)  
 c
 c
+!    Guass Weight of Guass integration points in respective order
+      data Gauss_Weight /0.308641975309d0, 0.308641975309d0, 
+     * 0.308641975309d0, 0.308641975309d0, 0.493827160494d0,
+     * 0.493827160494d0, 0.493827160494d0, 0.493827160494d0, 
+     * 0.79012345679d0/
+c
+c
       do i = 1, 18
         ADIS(i) = U(i)
         ADDIS(i) = DU(i)
@@ -54,9 +61,6 @@ c
         ANU  = PROPS(3)
         ADENS= PROPS(4)
         AC_THREE = (3/5)**1/2
-        AW_THREE_A = 25/81
-        AW_THREE_B = 40/81
-        AW_THREE_C = 64/81
         AXI_THREE(1)=-AC_THREE
         AXI_THREE(2)= AC_THREE
         AXI_THREE(3)= AC_THREE
@@ -77,11 +81,7 @@ c
         AOMEGA_THREE(9)= 0
       end do
 c
-      do i = 1, 4
-        AW_THREE(i) = AW_THREE_A
-        AW_THREE(i+4) = AW_THREE_B
-        AW_THREE(9) = AW_THREE_C
-      end do
+c
 c*********************************************************************** 
       do kintk = 1, ninpt
 c
