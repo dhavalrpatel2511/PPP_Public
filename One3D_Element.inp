@@ -1,0 +1,218 @@
+**
+** INPUT FILE FOR ABAQUS FOR IMPLEMENTATION OF STRAIN-GRADIENT ELASTICITY
+** IMPLEMENTATION OF THE USER DEFINED-ELEMENTS QU34L4 VIA SUBROUTINE UEL
+**
+*HEADING
+STRAIN-GRADIENT ELASTICITY IN PLANE STRAIN WITH USER ELEMENT QU34L4
+**
+**PREPRINT, MODEL=NO
+**
+******************************
+**
+** DEFINE NODES
+**
+*PART, NAME=abapart
+*End Part
+*ASSEMBLY, NAME=assembly
+*INSTANCE, NAME=abainstance, PART=abapart
+**
+*NODE,NSET=N1
+1,  0.,   0.,   0.
+2,  2.,   0.,   0.
+3,  2.,   2.,   0.
+4,  0.,   2.,   0.
+5,  0.,   0.,   2.
+6,  2.,   0.,   2.
+7,  2.,   2.,   2.
+8,  0.,   2.,   2.
+9,  1.,   0.,   0.
+10, 2.,   1.,   0.
+11, 1.,   2.,   0.
+12, 0.,   1.,   0.
+13, 1.,   0.,   2.
+14, 2.,   1.,   2.
+15, 1.,   2.,   2.
+16, 0.,   1.,   2. 
+17, 0.,   0.,   1.
+18, 2.,   0.,   1.
+19, 2.,   2.,   1.
+20, 0.,   2.,   1.
+21, 0.,   1.,   1.
+22, 2.,   1.,   1.
+23, 1.,   2.,   1.
+24, 1.,   0.,   1.
+25, 1.,   1.,   0.
+26, 1.,   1.,   2.
+27, 1.,   1.,   1.
+**
+**NGEN,NSET=ALL
+**1,5,1
+**6,10,1
+**11,15,1
+**16,20,1
+**21,25,1
+**
+******************************
+** DEFINE USER ELEMENT: DOF AT NODE 1-4: 1,2,21-24
+** DOF AT NODE 5-8: 1,2
+** DOF AT NODE 9: 1,2,25-28
+**
+** DECLARATION DOF: DOF SYMBOL MEANING
+** 1 U1 DISPLACEMENT - X
+** 2 U2 DISPLACEMENT - Y
+** 21 PSI11 RELAXED STRAIN - XX
+** 22 PSI21 RELAXED STRAIN - YX
+** 23 PSI12 RELAXED STRAIN - XY
+** 24 PSI22 RELAXED STRAIN - YY
+** 25 RHO11 LAGRANGE MULTIPLIER - XX
+** 26 RHO21 LAGRANGE MULTIPLIER - YX
+** 27 RHO12 LAGRANGE MULTIPLIER - XY
+** 28 RHO22 LAGRANGE MULTIPLIER - YY
+**
+*USER ELEMENT,NODES=27,TYPE=U3,PROPERTIES=4,COORDINATES=3,VARIABLES=648
+1,2,3
+1,13,14,15,16,17,18,19,20,21
+9,
+10,
+11,
+12,
+13,
+14,
+15,
+16,
+17,
+18,
+19,
+20,
+21,
+22,
+23,
+24,
+25,
+26,
+27,
+27,22,23,24,25,26,27,28,29,30
+**
+******************************
+**
+** DEFINE USER ELEMENT PROPERTIES (E,NU,L,DENS)
+**
+** SYMBOL MEANING
+**
+** E YOUNG'S MODULUS
+** NU POISSON'S RATIO
+** L MICROSTRUCTURAL LENGTH
+** DENS DENSITY
+**
+*UEL PROPERTY,ELSET=ELEM
+210e3,0.3,0.01,7850e-6.
+**
+******************************
+**
+** GENERATE ELEMENTS
+**
+*ELEMENT,TYPE=U3,ELSET=ELEM
+1,1,2,3,4,5,6,7,8,9,10,11,12,13,
+14,15,16,17,18,19,20,21,22,23,24,25,26,27
+**
+*END INSTANCE
+** DEFINE NODE SETS
+**
+**
+*NSET,NSET=OUTcorner,INSTANCE=abainstance
+1,2,3,4,5,6,7,8
+*NSET, NSET=TOP,INSTANCE=abainstance
+5,6,7,8,13,14,15,16,26
+*NSET, NSET=LEFT,INSTANCE=abainstance
+1,4,8,5,12,20,16,17,21
+*NSET, NSET=RIGHT,INSTANCE=abainstance
+2,3,7,6,10,19,14,18,22
+*NSET, NSET=BOTTOM,INSTANCE=abainstance
+1,2,3,4,9,10,11,12,25
+*NSET, NSET=MIDDLEver,INSTANCE=abainstance
+13,9,11,15,24,25,23,26,27
+*NSET,NSET=MIDDLEhor,INSTANCE=abainstance
+17,18,19,20,24,22,23,21,27
+**
+*END ASSEMBLY
+**
+******************************
+**
+** BEGIN STEP
+**
+*STEP,NLGEOM=NO
+*STATIC
+0.1,1,0.001,0.1
+**
+**~ *CONTROLS,PARAMETERS=FIELD
+**~ 0.0001, , , , , , , 
+**~ *CONTROLS,PARAMETERS=TIME INCREMENTATION
+**~ 50,50,50,100,100,100, ,20, , , 
+**
+******************************
+**
+** DEFINE BOUNDARY CONDITIONS
+**
+*BOUNDARY
+**
+** U1(LEFT)=0
+**
+LEFT,1,1,0.
+**
+** U2(BOTTOM)=0
+**
+BOTTOM,2,2,0.
+**
+** PSI12(LEFT)=PSI21(LEFT)=0
+**
+**~ LEFT_BC,22,23,0.
+**
+** PSI12(BOTTOM)=PSI21BOTTOM)=0
+**
+**~ BOTTOM_BC,22,23,0.
+**
+TOP,2,2,0.01
+******************************
+**
+** APPLY SURFACE LOADS
+**
+** --> LOAD TYPE IDENTIFIER U1-U8
+**
+** ELEMENT FACE I II III IV
+** LOAD T_X IN X-DIRECTION U1 U2 U3 U4
+** LOAD T_Y IN Y-DIRECTION U5 U6 U7 U8
+**
+** T_X(ELRIGHT)=0.01
+**
+**DLOAD
+**RightElement,U2,100
+**
+******************************
+**
+** OUTPUT REQUESTS
+** 
+*Restart, write, frequency=0
+** 
+** FIELD OUTPUT: F-Output-1
+** 
+*Output, field
+*Node Output
+U,RF
+*Element Output, directions=YES
+S
+**
+*ENERGY FILE, FREQUENCY=1
+*FILE FORMAT, ZERO INCREMENT
+*EL FILE, FREQUENCY=1
+SDV
+*NODE FILE, FREQUENCY=1
+U,RF
+**
+** END OF STEP
+**
+*END STEP
+**
+******************************
+**
+** END OF FILE
+**
