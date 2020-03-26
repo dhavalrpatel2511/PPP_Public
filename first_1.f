@@ -1,4 +1,4 @@
-      subroutine uel(rhs,amatrx,svars,energy,ndofel,nrhs,nsvars,props,
+      subroutine UEL_2D(rhs,amatrx,svars,energy,ndofel,nrhs,nsvars,props,
      1 nprops,coords,mcrd,nnode,u,du,v,a,jtype,time,dtime,kstep,kinc,
      2 jelem,params,ndload,jdltyp,adlmag,predef,npredf,lflags,mlvarx,  
      3 ddlmag,mdload,pnewdt,jprops,njpro,period)
@@ -837,7 +837,7 @@ c
 c
 c
       return
-      end subroutine uel       
+      end subroutine UEL_2D       
 !     END of the main subroutine UEL.   
 c***********************************************************************
       subroutine shapefcn_U(dN_U,dNd_xi,kintk,ninpt,nnode,ndim)
@@ -1150,20 +1150,31 @@ c
       end do
       write(6,*) "micro"
       write(6,*) micro_length
-      D_matrix(1,1) = (lemda + 2.d0*mue)*micro_length*micro_length
-      D_matrix(1,6) = 0.5d0*lemda*micro_length*micro_length
-      D_matrix(2,2) = mue*micro_length*micro_length
-      D_matrix(2,6) = 0.5d0*mue*micro_length*micro_length
-      D_matrix(3,3) = mue*micro_length*micro_length
-      D_matrix(3,5) = 0.5d0*mue*micro_length*micro_length 
-      D_matrix(4,4) = (lemda + 2.d0*mue)*micro_length*micro_length
-      D_matrix(4,5) = 0.5d0*lemda*micro_length*micro_length
-      D_matrix(5,3) = 0.5d0*mue*micro_length*micro_length
-      D_matrix(5,4) = 0.5d0*lemda*micro_length*micro_length
-      D_matrix(5,5) =0.25d0*(lemda + 3.d0*mue)*micro_length*micro_length
-      D_matrix(6,1) = 0.5d0*lemda*micro_length*micro_length
-      D_matrix(6,2) = 0.5d0*mue*micro_length*micro_length
-      D_matrix(6,6) =0.25d0*(lemda + 3.d0*mue)*micro_length*micro_length
+c~       umat-----1
+c~       D_matrix(1,1) = (lemda + 2.d0*mue)*micro_length*micro_length
+c~       D_matrix(1,6) = 0.5d0*lemda*micro_length*micro_length
+c~       D_matrix(2,2) = mue*micro_length*micro_length
+c~       D_matrix(2,6) = 0.5d0*mue*micro_length*micro_length
+c~       D_matrix(3,3) = mue*micro_length*micro_length
+c~       D_matrix(3,5) = 0.5d0*mue*micro_length*micro_length 
+c~       D_matrix(4,4) = (lemda + 2.d0*mue)*micro_length*micro_length
+c~       D_matrix(4,5) = 0.5d0*lemda*micro_length*micro_length
+c~       D_matrix(5,3) = 0.5d0*mue*micro_length*micro_length
+c~       D_matrix(5,4) = 0.5d0*lemda*micro_length*micro_length
+c~       D_matrix(5,5) =0.25d0*(lemda + 3.d0*mue)*micro_length*micro_length
+c~       D_matrix(6,1) = 0.5d0*lemda*micro_length*micro_length
+c~       D_matrix(6,2) = 0.5d0*mue*micro_length*micro_length
+c~       D_matrix(6,6) =0.25d0*(lemda + 3.d0*mue)*micro_length*micro_length
+c
+c~          umat----------2
+         D_matrix(2,2) = 1.d0*micro_length*micro_length*mue
+         D_matrix(2,6) = -0.5d0*micro_length*micro_length*mue
+         D_matrix(3,3) = 1.d0*micro_length*micro_length*mue
+         D_matrix(3,5) = -0.5d0*micro_length*micro_length*mue
+         D_matrix(5,3) = -0.5d0*micro_length*micro_length*mue
+         D_matrix(5,5) = 0.25d0*micro_length*micro_length*mue
+         D_matrix(6,2) = -0.5d0*micro_length*micro_length*mue
+         D_matrix(6,6) = 0.25d0*micro_length*micro_length*mue
       write(6,*) "this is D_matrix"
       do i = 1, size(D_matrix,1)
         write(6,'(20G12.4)')  D_matrix(i,:)
