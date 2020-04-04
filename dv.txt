@@ -1,0 +1,185 @@
+commit c49f7b46f19fbd2b419529c54d809f761aefd4a5
+Author: Dhaval Rasheshkumar Patel <dhavalrpatel2511@gmail.com>
+Date:   Sat Apr 4 12:01:54 2020 +0200
+
+    Rename the Fortran file(UEl) from first_1 to UEL_2D.
+
+commit 27aabe75271e3a27c4205f933002e8f157536307
+Author: Dhaval Rasheshkumar Patel <dhavalrpatel2511@gmail.com>
+Date:   Sat Apr 4 12:00:00 2020 +0200
+
+    After add the final comments and whole details of each specific subroutine and sections.
+
+commit 9dfb334fc054b781d24b8765e5cbb2be556c9ede
+Author: Dhaval Rasheshkumar Patel <dhavalrpatel2511@gmail.com>
+Date:   Thu Mar 26 18:40:16 2020 +0100
+
+    Finalized code after adding the second gradient material (UMAT).
+
+commit 7c683b0472be67355dbaa603bfc580bf78a0bebd
+Author: Dhaval Rasheshkumar Patel <dhavalrpatel2511@gmail.com>
+Date:   Sat Mar 21 17:56:36 2020 +0100
+
+    First commit after Exams, lots of changes due to gap between last commit and this commit. -- large number of changes which were not commited before included.
+
+commit 85ce1b756ccfbec1bd00911e910006de4625fd39
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Wed Feb 19 16:09:14 2020 +0100
+
+    First attempt of 3D Model. with one element and 27 nodes and 27 integration points and total 162 degrees of freedom.
+
+commit 1dfc096affaf9cd819b3b2d6a5bfd87a2b904340
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Tue Feb 11 17:18:12 2020 +0100
+
+    Update the mesh_generation_file.
+
+commit 8dc191f6ea13c20bef2eb2c0f10267ffda5c9b26
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Wed Feb 5 23:54:06 2020 +0100
+
+    Mesh_720_plate_with_circular_hole_2983_nodes.
+
+commit e24346f4754ff47aa08767c75ba7c6f704cf66e6
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Thu Jan 30 15:32:03 2020 +0100
+
+    Add Gauss weight as an vector in to the code for all gauss integration points.
+
+commit cc4510d04424e68c269690f9dfbfaa1261a8e302
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Thu Jan 30 15:27:47 2020 +0100
+
+    Wrote one python code for patch test to get the analytical values of Relaxed_Strain and Displacements from equation derive.
+
+commit fe9cbc431e7741239372bcc6aa32d7b8312381e2
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Fri Jan 24 15:03:20 2020 +0100
+
+    Add internal force vector into RHS matrix and also assign the numerical zeros to the AMatrix.
+
+commit e75cd27484d6bf8c6a32a91873bcd4e8210a6452
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Fri Jan 24 15:01:17 2020 +0100
+
+    Modification in node number and assembaly of nodes into element.
+
+commit 0b87b3462f82a67121ed7cdd51f0a78aff60a51d
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Wed Jan 15 19:02:46 2020 +0100
+
+    PYTHON file to convert the 8 noded element into the 9 noded element.
+
+commit 3a122dd1aeb6af7124648380d06c1895de06c8e8
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Mon Jan 13 11:59:51 2020 +0100
+
+    Assemble Amatrx- coupling of degrees of freedom Displcement,Relaxed strain and Lagrange constrains.
+
+commit e3587f72ea8f5c58bc39a949bd3922ab2235c7f7
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Sun Jan 12 12:10:22 2020 +0100
+
+    Add the two force vector R_vector and S_vector which contains the internal forces which is related to degrre of freedom relaxed strain and lagrange respectively.
+
+commit 454d2c395cd736942d2b740d7de428278a158ab4
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Sun Jan 12 12:08:18 2020 +0100
+
+    Add internal force vector which is corresponde to the displcement degree of freedom.
+
+commit bf8923d8992b1642575e010a5eb28fcbe452044a
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Mon Jan 6 14:55:51 2020 +0100
+
+    code Mass_Matrix for different procedure.
+
+commit e66eb5e44f00829124cbb0a0cce5ee6db7cc59e1
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Tue Dec 31 01:06:12 2019 +0100
+
+    Add Stiffness_Psirho and Stiffness_Urho matrix for the combination of relaxed strain and lagrange multiplier and second for displacement and lagrange multiplier respectively.
+
+commit 4ec28f418999d146ecbe7870b45631cd535f6044
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Mon Dec 30 22:44:28 2019 +0100
+
+    Code Stiffness_UU and Stiffness_PsiPsi matrix for the displacement and relaxed strain degrees of freedom.
+
+commit e1e99dd7432605275a86b08a01d57efb50402302
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Sat Dec 28 18:14:50 2019 +0100
+
+    Store the values of the State varaibles Sigma and Tau into the svars matrix.
+
+commit 1146d04f153c492e0e16eaa60ff75ada651669e7
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Sat Dec 28 17:48:54 2019 +0100
+
+    Call the KUMAT subroutine into the main subroutine UEL to fine the state varables Sigma and Tau and print these values to the .dat file
+
+commit 68f15e0c701cccecade627cf6193739cd579c894
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Sat Dec 28 14:58:53 2019 +0100
+
+    write KUMAT subroutine to finding state variables Sigma and Tau.
+
+commit c252e05031ef5d1971e61e2ba453ae5bdd1f568f
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Fri Dec 27 16:34:06 2019 +0100
+
+    update the state variables-(relaxed_strain_gradient, delta_relaxed_strain_gradient,langrage_multiplier)
+
+commit ab1d03845a4fca1899f5171df0d8d0cb39b3c792
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Fri Dec 27 15:45:13 2019 +0100
+
+    update of state variables (displacement gradient,strain,delta_strain,relaxed_strain)
+
+commit cc11750b00fede6bcb289f756456db90e72b413e
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Sun Dec 22 15:27:52 2019 +0100
+
+    assembly of N_matrix,B_matrix,M_matrix.
+
+commit d394b2ff1fe74aea26d4fc02eed6dbe45cc2b43a
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Fri Dec 13 16:13:15 2019 +0100
+
+    call shape functions jacobian and B_matrix.
+
+commit 064c7725b1c5ac02d67d426b43520f57a9cccf17
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Thu Dec 12 22:44:23 2019 +0100
+
+    add jacobina matrix subroutine for both shape functions
+
+commit e1e7f9ccf0b26ad711f233de15efe03adc563a6b
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Thu Dec 12 16:03:45 2019 +0100
+
+    added the shape function for shi.
+
+commit 43bc0d1672b3d769b0e1664b7ac0d5c5dfd652d3
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Mon Dec 9 19:45:31 2019 +0100
+
+    add shape function for diplcement.
+
+commit ac2b72083c031d7e0e0d7a0aec57d09e51b6fd88
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Mon Dec 9 17:51:42 2019 +0100
+
+    add gauss_coords and its weights and some properties.
+
+commit 1c83972837639f0153af1db865f0489123f13533
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Mon Dec 9 17:48:26 2019 +0100
+
+    add common parameters and dimensions of standard variables.
+
+commit 41f0892d3ea1f9fa895c780b2880fd60bcd4ec5d
+Author: Dhaval Rasheshk Patelumar <dp44dafy@imfd053.imfd.tu-freiberg.de>
+Date:   Mon Dec 9 17:40:50 2019 +0100
+
+    add standard format for UEL.

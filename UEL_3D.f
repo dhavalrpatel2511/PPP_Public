@@ -8,7 +8,7 @@ c
 !    This statement includes the inbuilt variables/parameters for Abaqus
       include 'aba_param.inc' 
 c
-      dimension rhs(162),amatrx(162,162),props(4),svars(648),
+      dimension rhs(162),amatrx(162,162),props(4),svars(324),
      1 coords(3,27),u(162),du(1,153),time(*),
      2 a(ndofel),params(*),jdltyp(mdload,*),adlmag(mdload,*),
      3 ddlmag(mdload,*),predef(2,npredf,nnode),lflags(*),jprops(*),
@@ -423,9 +423,9 @@ c
             Nrhomatrix(8,i) = 0.d0
             Nrhomatrix(9,i) = 0.d0
          end do
-         do i = 1, 9
-            Nrhomatrix(i,i) = 1.d0
-         end do
+c~          do i = 1, 9
+c~             Nrhomatrix(i,i) = 1.d0
+c~          end do
 !       print the Nrhomatrix in .dat file         
 *         write(6,*) 'this is Nrhomatrix'
 *         do i = 1, size(Nrhomatrix,1)
@@ -592,12 +592,12 @@ c~             write(6,'(20G12.4)')  svars(i+(kintk-1)*9)
 c~          end do
 c
          do i = 1, 6
-           svars(i+(kintk-1)*24) = Sigma(i,kintk)
+           svars(i+(kintk-1)*18) = Sigma(i,kintk)
          end do
-         do i = 7, 24
-           svars(i+(kintk-1)*24) = Tau(i-6,kintk)
+         do i = 7, 12
+           svars(i+(kintk-1)*18) = strain(i-6,kintk)
          end do
-c
+c     
 c~          do i = 1, 6
 c~             svars(i+(kintk-1)*22) = Sigma(i,kintk)
 c~          end do
@@ -614,10 +614,10 @@ c~          do i = 20, 22
 c~             svars(i+(kintk-1)*22) = strain(i-19,kintk)
 c~          end do
 !       Print the State variable vector in .dat file.         
-         write(6,*) "this is state vars"
-         do i = 1, 24
-            write(6,'(20G12.4)')  svars(i+(kintk-1)*24)
-         end do         
+c~          write(6,*) "this is state vars"
+c~          do i = 1, 24
+c~             write(6,'(20G12.4)')  svars(i+(kintk-1)*24)
+c~          end do         
 c***********************************************************************
 !       Find the Element Stiffness Matrices:
 c
@@ -881,19 +881,19 @@ c
 !     Assemble the RHS matrix.
 !     rhs(1:18) = F_vector(1:18)
       do i = 1, 81
-         rhs(i) = rhs(i) - F_vector(i)
+         rhs(i) = rhs(i) + F_vector(i)
       end do
 c
 c
 !     rhs(19:34) = R_vector(1:16)
       do i = 82, 153
-         rhs(i) = rhs(i) - R_vector(i-81)
+         rhs(i) = rhs(i) + R_vector(i-81)
       end do
 c
 c
 !     rhs(35:38) = S_vector(1:4)
       do i = 154, 162
-         rhs(i) = rhs(i) - S_vector(i-153)
+         rhs(i) = rhs(i) + S_vector(i-153)
       end do
 c
 c
@@ -945,27 +945,27 @@ c     determine (x,y,z)
         z = Gauss_coord_Z(kintk)*Gauss_Coord
 c
 c     shape functions
-        dN_U(1) = 0.125d0*x*(x-1.d0)*y*(y-1.d0)*z*(z-1.d0)
-        dN_U(2) = 0.125d0*x*(x+1.d0)*y*(y-1.d0)*z*(z-1.d0)
+        dN_U(1) = 0.125d0*x*(x+1.d0)*y*(y-1.d0)*z*(z+1.d0)
+        dN_U(2) = 0.125d0*x*(x+1.d0)*y*(y+1.d0)*z*(z+1.d0)
         dN_U(3) = 0.125d0*x*(x+1.d0)*y*(y+1.d0)*z*(z-1.d0)
-        dN_U(4) = 0.125d0*x*(x-1.d0)*y*(y+1.d0)*z*(z-1.d0)
+        dN_U(4) = 0.125d0*x*(x+1.d0)*y*(y-1.d0)*z*(z-1.d0)
         dN_U(5) = 0.125d0*x*(x-1.d0)*y*(y-1.d0)*z*(z+1.d0)
-        dN_U(6) = 0.125d0*x*(x+1.d0)*y*(y-1.d0)*z*(z+1.d0)
-        dN_U(7) = 0.125d0*x*(x+1.d0)*y*(y+1.d0)*z*(z+1.d0)
-        dN_U(8) = 0.125d0*x*(x-1.d0)*y*(y+1.d0)*z*(z+1.d0)
+        dN_U(6) = 0.125d0*x*(x-1.d0)*y*(y+1.d0)*z*(z+1.d0) 
+        dN_U(7) = 0.125d0*x*(x-1.d0)*y*(y+1.d0)*z*(z-1.d0)               
+        dN_U(8) = 0.125d0*x*(x-1.d0)*y*(y-1.d0)*z*(z-1.d0)
 c        
-        dN_U(9)  = 0.25d0*(1.d0-x*x)*y*(y-1.d0)*z*(z-1.d0)
-        dN_U(10) = 0.25d0*x*(x+1.d0)*(1.d0-y*y)*z*(z-1.d0)
-        dN_U(11) = 0.25d0*(1.d0-x*x)*y*(y+1.d0)*z*(z-1.d0)
-        dN_U(12) = 0.25d0*x*(x-1.d0)*(1.d0-y*y)*z*(z-1.d0)
-        dN_U(13) = 0.25d0*(1.d0-x*x)*y*(y-1.d0)*z*(z+1.d0)
-        dN_U(14) = 0.25d0*x*(x+1.d0)*(1.d0-y*y)*z*(z+1.d0)
-        dN_U(15) = 0.25d0*(1.d0-x*x)*y*(y+1.d0)*z*(z+1.d0)
-        dN_U(16) = 0.25d0*x*(x-1.d0)*(1.d0-y*y)*z*(z+1.d0)
-        dN_U(17) = 0.25d0*x*(x-1.d0)*y*(y-1.d0)*(1.d0-z*z)
-        dN_U(18) = 0.25d0*x*(x+1.d0)*y*(y-1.d0)*(1.d0-z*z)
-        dN_U(19) = 0.25d0*x*(x+1.d0)*y*(y+1.d0)*(1.d0-z*z)
-        dN_U(20) = 0.25d0*x*(x-1.d0)*y*(y+1.d0)*(1.d0-z*z)     
+        dN_U(9) = 0.25d0*x*(x+1.d0)*(1.d0-y*y)*z*(z+1.d0)
+        dN_U(10) = 0.25d0*x*(x+1.d0)*y*(y+1.d0)*(1.d0-z*z)
+        dN_U(11) = 0.25d0*x*(x+1.d0)*(1.d0-y*y)*z*(z-1.d0)
+        dN_U(12) = 0.25d0*x*(x+1.d0)*y*(y-1.d0)*(1.d0-z*z)
+        dN_U(13) = 0.25d0*x*(x-1.d0)*(1.d0-y*y)*z*(z+1.d0)
+        dN_U(14) = 0.25d0*x*(x-1.d0)*y*(y+1.d0)*(1.d0-z*z)  
+        dN_U(15) = 0.25d0*x*(x-1.d0)*(1.d0-y*y)*z*(z-1.d0)
+        dN_U(16) = 0.25d0*x*(x-1.d0)*y*(y-1.d0)*(1.d0-z*z)
+        dN_U(17) = 0.25d0*(1.d0-x*x)*y*(y-1.d0)*z*(z+1.d0)
+        dN_U(18) = 0.25d0*(1.d0-x*x)*y*(y+1.d0)*z*(z+1.d0)
+        dN_U(19) = 0.25d0*(1.d0-x*x)*y*(y+1.d0)*z*(z-1.d0)
+        dN_U(20)  = 0.25d0*(1.d0-x*x)*y*(y-1.d0)*z*(z-1.d0)   
 c        
         dN_U(21) = 0.5d0*x*(x-1.d0)*(1.d0-y*y)*(1.d0-z*z)
         dN_U(22) = 0.5d0*x*(x+1.d0)*(1.d0-y*y)*(1.d0-z*z)
@@ -977,91 +977,100 @@ c
         dN_U(27) = (1.d0-x*x)*(1.d0-y*y)*(1.d0-z*z)
 c
 c     derivative d(Ni)/d(g)
-        dN_U_X(1,1) = 0.125d0*(2.d0*x-1.d0)*(y*y-y)*(z*z-z)
-        dN_U_X(1,2) = 0.125d0*(2.d0*x+1.d0)*(y*y-y)*(z*z-z)
+        dN_U_X(1,1) = 0.125d0*(2.d0*x+1.d0)*(y*y-y)*(z*z+z)
+        dN_U_X(1,2) = 0.125d0*(2.d0*x+1.d0)*(y*y+y)*(z*z+z)
         dN_U_X(1,3) = 0.125d0*(2.d0*x+1.d0)*(y*y+y)*(z*z-z)
-        dN_U_X(1,4) = 0.125d0*(2.d0*x-1.d0)*(y*y+y)*(z*z-z)
+        dN_U_X(1,4) = 0.125d0*(2.d0*x+1.d0)*(y*y-y)*(z*z-z)
         dN_U_X(1,5) = 0.125d0*(2.d0*x-1.d0)*(y*y-y)*(z*z+z)
-        dN_U_X(1,6) = 0.125d0*(2.d0*x+1.d0)*(y*y-y)*(z*z+z)
-        dN_U_X(1,7) = 0.125d0*(2.d0*x-1.d0)*(y*y+y)*(z*z+z)
-        dN_U_X(1,8) = 0.125d0*(2.d0*x-1.d0)*(y*y+y)*(z*z+z)
-        dN_U_X(1,9) = -0.5d0*x*y*(y-1.d0)*z*(z-1.d0)
-        dN_U_X(1,10) =0.25d0*(2.d0*x+1.d0)*(1.d0-y*y)*z*(z-1.d0)
-        dN_U_X(1,11) =-0.5d0*x*y*(y+1.d0)*z*(z-1.d0)
-        dN_U_X(1,12) =0.25d0*(2.d0*x-1.d0)*(1.d0-y*y)*z*(z-1.d0)
-        dN_U_X(1,13) =-0.5d0*x*y*(y-1.d0)*z*(z+1.d0)
-        dN_U_X(1,14) =0.25d0*(2.d0*x+1.d0)*(1.d0-y*y)*z*(z+1.d0)
-        dN_U_X(1,15) =-0.5d0*x*y*(y+1.d0)*z*(z+1.d0)
-        dN_U_X(1,16) =0.25d0*(2.d0*x-1.d0)*(1.d0-y*y)*z*(z+1.d0)
-        dN_U_X(1,17) =0.25d0*(2.d0*x-1.d0)*y*(y-1.d0)*(1.d0-z*z)
-        dN_U_X(1,18) =0.25d0*(2.d0*x+1.d0)*y*(y-1.d0)*(1.d0-z*z)
-        dN_U_X(1,19) =0.25d0*(2.d0*x+1.d0)*y*(y+1.d0)*(1.d0-z*z)
-        dN_U_X(1,20) =0.25d0*(2.d0*x-1.d0)*y*(y+1.d0)*(1.d0-z*z)
+        dN_U_X(1,6) = 0.125d0*(2.d0*x-1.d0)*(y*y+y)*(z*z+z)
+        dN_U_X(1,7) = 0.125d0*(2.d0*x-1.d0)*(y*y+y)*(z*z-z)
+        dN_U_X(1,8) = 0.125d0*(2.d0*x-1.d0)*(y*y-y)*(z*z-z)
+c        
+        dN_U_X(1,9) =0.25d0*(2.d0*x+1.d0)*(1.d0-y*y)*z*(z+1.d0)
+        dN_U_X(1,10) =0.25d0*(2.d0*x+1.d0)*y*(y+1.d0)*(1.d0-z*z)
+        dN_U_X(1,11) =0.25d0*(2.d0*x+1.d0)*(1.d0-y*y)*z*(z-1.d0)
+        dN_U_X(1,12) =0.25d0*(2.d0*x+1.d0)*y*(y-1.d0)*(1.d0-z*z)
+        dN_U_X(1,13) =0.25d0*(2.d0*x-1.d0)*(1.d0-y*y)*z*(z+1.d0)
+        dN_U_X(1,14) =0.25d0*(2.d0*x-1.d0)*y*(y+1.d0)*(1.d0-z*z)
+        dN_U_X(1,15) =0.25d0*(2.d0*x-1.d0)*(1.d0-y*y)*z*(z-1.d0)
+        dN_U_X(1,16) =0.25d0*(2.d0*x-1.d0)*y*(y-1.d0)*(1.d0-z*z)
+        dN_U_X(1,17) =-0.5d0*x*y*(y-1.d0)*z*(z+1.d0)
+        dN_U_X(1,18) =-0.5d0*x*y*(y+1.d0)*z*(z+1.d0)
+        dN_U_X(1,19) =-0.5d0*x*y*(y+1.d0)*z*(z-1.d0)                                        
+        dN_U_X(1,20) = -0.5d0*x*y*(y-1.d0)*z*(z-1.d0)
+c        
         dN_U_X(1,21) = 0.5d0*(2.d0*x-1.d0)*(1.d0-y*y)*(1.d0-z*z)
         dN_U_X(1,22) = 0.5d0*(2.d0*x+1.d0)*(1.d0-y*y)*(1.d0-z*z)
         dN_U_X(1,23) = -0.5d0*(2.d0*x)*y*(y+1.d0)*(1.d0-z*z)
         dN_U_X(1,24) = -0.5d0*(2.d0*x)*y*(y-1.d0)*(1.d0-z*z)
         dN_U_X(1,25) = -0.5d0*(2.d0*x)*(1.d0-y*y)*z*(z-1.d0)
         dN_U_X(1,26) = -0.5d0*(2.d0*x)*(1.d0-y*y)*z*(z+1.d0)
+c        
         dN_U_X(1,27) = -(2.d0*x)*(1.d0-y*y)*(1.d0-z*z)
 c
 c     derivative d(Ni)/d(h)
-        dN_U_X(2,1) = 0.125d0*(x*x-x)*(2.d0*y-1.d0)*(z*z-z)
-        dN_U_X(2,2) = 0.125d0*(x*x+x)*(2.d0*y-1.d0)*(z*z-z)
+        dN_U_X(2,1) = 0.125d0*(x*x+x)*(2.d0*y-1.d0)*(z*z+z)
+        dN_U_X(2,2) = 0.125d0*(x*x+x)*(2.d0*y+1.d0)*(z*z+z)
         dN_U_X(2,3) = 0.125d0*(x*x+x)*(2.d0*y+1.d0)*(z*z-z)
-        dN_U_X(2,4) = 0.125d0*(x*x-x)*(2.d0*y+1.d0)*(z*z-z)
+        dN_U_X(2,4) = 0.125d0*(x*x+x)*(2.d0*y-1.d0)*(z*z-z)
         dN_U_X(2,5) = 0.125d0*(x*x-x)*(2.d0*y-1.d0)*(z*z+z)
-        dN_U_X(2,6) = 0.125d0*(x*x+x)*(2.d0*y-1.d0)*(z*z+z)
-        dN_U_X(2,7) = 0.125d0*(x*x+x)*(2.d0*y+1.d0)*(z*z+z)
-        dN_U_X(2,8) = 0.125d0*(x*x-x)*(2.d0*y+1.d0)*(z*z+z)
-        dN_U_X(2,9) = 0.25d0*(1.d0-x*x)*(2.d0*y-1.d0)*z*(z-1.d0)
-        dN_U_X(2,10) = -0.25d0*x*(x+1.d0)*(2.d0*y)*z*(z-1.d0)
-        dN_U_X(2,11) = 0.25d0*(1.d0-x*x)*(2.d0*y+1.d0)*z*(z-1.d0)
-        dN_U_X(2,12) = -0.25d0*x*(x-1.d0)*(2.d0*y)*z*(z-1.d0)
-        dN_U_X(2,13) = 0.25d0*(1.d0-x*x)*(2.d0*y-1.d0)*z*(z+1.d0)
-        dN_U_X(2,14) = -0.25d0*x*(x+1.d0)*(2.d0*y)*z*(z+1.d0)
-        dN_U_X(2,15) = 0.25d0*(1.d0-x*x)*(2.d0*y+1.d0)*z*(z+1.d0)
-        dN_U_X(2,16) = -0.25d0*x*(x-1.d0)*(2.d0*y)*z*(z+1.d0)
-        dN_U_X(2,17) = 0.25d0*x*(x-1.d0)*(2.d0*y-1.d0)*(1.d0-z*z)
-        dN_U_X(2,18) = 0.25d0*x*(x+1.d0)*(2.d0*y-1.d0)*(1.d0-z*z)
-        dN_U_X(2,19) = 0.25d0*x*(x+1.d0)*(2.d0*y+1.d0)*(1.d0-z*z)
-        dN_U_X(2,20) = 0.25d0*x*(x-1.d0)*(2.d0*y+1.d0)*(1.d0-z*z)
+        dN_U_X(2,6) = 0.125d0*(x*x-x)*(2.d0*y+1.d0)*(z*z+z)
+        dN_U_X(2,7) = 0.125d0*(x*x-x)*(2.d0*y+1.d0)*(z*z-z)                        
+        dN_U_X(2,8) = 0.125d0*(x*x-x)*(2.d0*y-1.d0)*(z*z-z)
+c        
+        dN_U_X(2,9) = -0.25d0*x*(x+1.d0)*(2.d0*y)*z*(z+1.d0)
+        dN_U_X(2,10) = 0.25d0*x*(x+1.d0)*(2.d0*y+1.d0)*(1.d0-z*z)
+        dN_U_X(2,11) = -0.25d0*x*(x+1.d0)*(2.d0*y)*z*(z-1.d0)                
+        dN_U_X(2,12) = 0.25d0*x*(x+1.d0)*(2.d0*y-1.d0)*(1.d0-z*z)
+        dN_U_X(2,13) = -0.25d0*x*(x-1.d0)*(2.d0*y)*z*(z+1.d0)
+        dN_U_X(2,14) = 0.25d0*x*(x-1.d0)*(2.d0*y+1.d0)*(1.d0-z*z)
+        dN_U_X(2,15) = -0.25d0*x*(x-1.d0)*(2.d0*y)*z*(z-1.d0)
+        dN_U_X(2,16) = 0.25d0*x*(x-1.d0)*(2.d0*y-1.d0)*(1.d0-z*z)
+        dN_U_X(2,17) = 0.25d0*(1.d0-x*x)*(2.d0*y-1.d0)*z*(z+1.d0)
+        dN_U_X(2,18) = 0.25d0*(1.d0-x*x)*(2.d0*y+1.d0)*z*(z+1.d0)                                        
+        dN_U_X(2,19) = 0.25d0*(1.d0-x*x)*(2.d0*y+1.d0)*z*(z-1.d0)
+        dN_U_X(2,20) = 0.25d0*(1.d0-x*x)*(2.d0*y-1.d0)*z*(z-1.d0)
+c        
         dN_U_X(2,21) = -0.5d0*x*(x-1.d0)*(2.d0*y)*(1.d0-z*z)
         dN_U_X(2,22) = -0.5d0*x*(x+1.d0)*(2.d0*y)*(1.d0-z*z)
         dN_U_X(2,23) = 0.5d0*(1.d0-x*x)*(2.d0*y+1.d0)*(1.d0-z*z)
         dN_U_X(2,24) = 0.5d0*(1.d0-x*x)*(2.d0*y-1.d0)*(1.d0-z*z)
         dN_U_X(2,25) = -0.5d0*(1.d0-x*x)*(2.d0*y)*z*(z-1.d0)
         dN_U_X(2,26) = -0.5d0*(1.d0-x*x)*(2.d0*y)*z*(z+1.d0)
+c        
         dN_U_X(2,27) = -(1.d0-x*x)*(2.d0*y)*(1.d0-z*z)
 c   
 c     derivative d(Ni)/d(h)
 c
-        dN_U_X(3,1) = 0.125d0*(x*x-x)*(y*y-y)*(2.d0*z-1.d0)
-        dN_U_X(3,2) = 0.125d0*(x*x+x)*(y*y-y)*(2.d0*z-1.d0)
-        dN_U_X(3,3) = 0.125d0*(x*x+x)*(y*y+y)*(2.d0*z-1.d0)
-        dN_U_X(3,4) = 0.125d0*(x*x-x)*(y*y+y)*(2.d0*z-1.d0)
+        dN_U_X(3,1) = 0.125d0*(x*x+x)*(y*y-y)*(2.d0*z+1.d0)
+        dN_U_X(3,2) = 0.125d0*(x*x+x)*(y*y+y)*(2.d0*z+1.d0)
+        dN_U_X(3,3) = 0.125d0*(x*x+x)*(y*y+y)*(2.d0*z-1.d0)        
+        dN_U_X(3,4) = 0.125d0*(x*x+x)*(y*y-y)*(2.d0*z-1.d0)
         dN_U_X(3,5) = 0.125d0*(x*x-x)*(y*y-y)*(2.d0*z+1.d0)
-        dN_U_X(3,6) = 0.125d0*(x*x+x)*(y*y-y)*(2.d0*z+1.d0)
-        dN_U_X(3,7) = 0.125d0*(x*x+x)*(y*y+y)*(2.d0*z+1.d0)
-        dN_U_X(3,8) = 0.125d0*(x*x-x)*(y*y-y)*(2.d0*z+1.d0)
-        dN_U_X(3,9) = 0.25d0*(1.d0-x*x)*y*(y-1.d0)*(2.d0*z-1.d0)
-        dN_U_X(3,10) = 0.25d0*x*(x+1.d0)*(1.d0-y*y)*(2.d0*z-1.d0)
-        dN_U_X(3,11) = 0.25d0*(1.d0-x*x)*y*(y+1.d0)*(2.d0*z-1.d0)
-        dN_U_X(3,12) = 0.25d0*x*(x-1.d0)*(1.d0-y*y)*(2.d0*z-1.d0)
-        dN_U_X(3,13) = 0.25d0*(1.d0-x*x)*y*(y-1.d0)*(2.d0*z+1.d0)
-        dN_U_X(3,14) = 0.25d0*x*(x+1.d0)*(1.d0-y*y)*(2.d0*z+1.d0)
-        dN_U_X(3,15) = 0.25d0*(1.d0-x*x)*y*(y+1.d0)*(2.d0*z+1.d0)
-        dN_U_X(3,16) = 0.25d0*x*(x-1.d0)*(1.d0-y*y)*(2.d0*z+1.d0)
-        dN_U_X(3,17) = -0.25d0*x*(x-1.d0)*y*(y-1.d0)*(2.d0*z)
-        dN_U_X(3,18) = -0.25d0*x*(x+1.d0)*y*(y-1.d0)*(2.d0*z)
-        dN_U_X(3,19) = -0.25d0*x*(x+1.d0)*y*(y+1.d0)*(2.d0*z)
-        dN_U_X(3,20) = -0.25d0*x*(x-1.d0)*y*(y+1.d0)*(2.d0*z)
+        dN_U_X(3,6) = 0.125d0*(x*x-x)*(y*y+y)*(2.d0*z+1.d0)
+        dN_U_X(3,7) = 0.125d0*(x*x-x)*(y*y+y)*(2.d0*z-1.d0)        
+        dN_U_X(3,8) = 0.125d0*(x*x-x)*(y*y-y)*(2.d0*z-1.d0)
+c        
+        dN_U_X(3,9) = 0.25d0*x*(x+1.d0)*(1.d0-y*y)*(2.d0*z+1.d0)
+        dN_U_X(3,10) = -0.25d0*x*(x+1.d0)*y*(y+1.d0)*(2.d0*z)
+        dN_U_X(3,11) = 0.25d0*x*(x+1.d0)*(1.d0-y*y)*(2.d0*z-1.d0)        
+        dN_U_X(3,12) = -0.25d0*x*(x+1.d0)*y*(y-1.d0)*(2.d0*z)
+        dN_U_X(3,13) = 0.25d0*x*(x-1.d0)*(1.d0-y*y)*(2.d0*z+1.d0)
+        dN_U_X(3,14) = -0.25d0*x*(x-1.d0)*y*(y+1.d0)*(2.d0*z)
+        dN_U_X(3,15) = 0.25d0*x*(x-1.d0)*(1.d0-y*y)*(2.d0*z-1.d0)
+        dN_U_X(3,16) = -0.25d0*x*(x-1.d0)*y*(y-1.d0)*(2.d0*z)
+        dN_U_X(3,17) = 0.25d0*(1.d0-x*x)*y*(y-1.d0)*(2.d0*z+1.d0)
+        dN_U_X(3,18) = 0.25d0*(1.d0-x*x)*y*(y+1.d0)*(2.d0*z+1.d0)
+        dN_U_X(3,19) = 0.25d0*(1.d0-x*x)*y*(y+1.d0)*(2.d0*z-1.d0)                                                
+        dN_U_X(3,20) = 0.25d0*(1.d0-x*x)*y*(y-1.d0)*(2.d0*z-1.d0)
+c        
         dN_U_X(3,21) = -0.5d0*x*(x-1.d0)*(1.d0-y*y)*(2.d0*z)
         dN_U_X(3,22) = -0.5d0*x*(x+1.d0)*(1.d0-y*y)*(2.d0*z)
         dN_U_X(3,23) = -0.5d0*(1.d0-x*x)*y*(y+1.d0)*(2.d0*z)
         dN_U_X(3,24) = -0.5d0*(1.d0-x*x)*y*(y-1.d0)*(2.d0*z)
         dN_U_X(3,25) = 0.5d0*(1.d0-x*x)*(1.d0-y*y)*(2.d0*z-1.d0)
         dN_U_X(3,26) = 0.5d0*(1.d0-x*x)*(1.d0-y*y)*(2.d0*z+1.d0)
+c        
         dN_U_X(3,27) = -(1.d0-x*x)*(1.d0-y*y)*(2.d0*z)
 c 
       return
