@@ -1,8 +1,36 @@
-      subroutine UEL_2D(rhs,amatrx,svars,energy,ndofel,nrhs,nsvars,props,
+c~ This is Ueser Element Subroutine(UEL) for Strain Gradient Elasticity 
+c~ Theory(SGET). The main purpose to write this UEL is to implement the 
+c~ 2D-FEM Model based on the SGET. This Code is based on the Mixed FEM
+c~ formulation derived by the John Y. Shu. The main thing in this UEl is 
+c~ to implement the Strain Gradient term into element formulation. 
+c~ Therefor, the newly developed QU34L4 element is used.
+c~ I code this UEL from my own I dont have any sorurce code reagarding 
+c~ theory.In addition to get extra information about this theory and for
+c~ basic knowledge of this mixed fem formulation, the diplom thesis of
+c~ L.Zybell,which is also refer in Report of this PPP,is provided to me.
+c~ I dont have any prior knowledge about the UELcoding so I refer abaqus 
+c~ manual for User element routine and also user material routine.
+c    
+c~ Code written by    : Dhaval Rasheshkumar Patel
+c~ Institute          : Technical University Freiberg
+c~ Supervisor         : Dr. Sergii Kozinov
+c~ Date of Submission : 4th April 2020
+c~ Title of PPP       : Implementation of GradientElasticityModel In FEM
+c
+c***********************************************************************
+      subroutine UEL(rhs,amatrx,svars,energy,ndofel,nrhs,nsvars,props,
      1 nprops,coords,mcrd,nnode,u,du,v,a,jtype,time,dtime,kstep,kinc,
      2 jelem,params,ndload,jdltyp,adlmag,predef,npredf,lflags,mlvarx,  
      3 ddlmag,mdload,pnewdt,jprops,njpro,period)
 c
+c~      Main Output from UEl : Rhs(right hand side vecor: F_ext - F_int)
+c~                           : Amatrx(Stiffness Matrix of Element)
+c~                           : Svars(State variables)
+                          
+c~      Main input to UEl    : U (all degrees of freedom - Displacement,
+c~                             Relaxed strain, Langrange_Multiplier) 
+c~                           : Du (change in all DOF in every step Disp,
+c~                             Relaxed strain, Langrange_Multiplier)  
 c
 !    Standard format of UEL for abaqus.
 !    This statement includes the inbuilt variables/parameters for Abaqus
@@ -24,57 +52,106 @@ c    ninpt     ... number of integration points
 c    nsvint    ... number of state variables per integration pt     
 c
 c
-!    defining and dimensioning the vectors, matrix.
+!    Initialization and dimensioning the vectors, matrix(arrays).
+c    internal force vector due to langrange multiplier
       double precision, dimension(4)     :: S_vector
+c    shape function matrix related to displcement       
       double precision, dimension(9)     :: dN_U  
+c    differential of relaxed strain shape function vector      
       double precision, dimension(8)     :: bmat_psi
-      double precision, dimension(4)     :: lagrange_multi         
+c    dof langrange multiplier       
+      double precision, dimension(4)     :: lagrange_multi        
+c    shape function matrix related to relaxed strain        
       double precision, dimension(4)     :: dN_PSI
-      double precision, dimension(9)     :: statevLocal
+c    gauss weight vector       
       double precision, dimension(9)     :: Gauss_Weight
+c    output parameter delta displcement for 9 nodes for 2 dimensions       
       double precision, dimension(18)    :: delta_displacement
+c    dof relaxed strain      
       double precision, dimension(16)    :: relaxed_strain
+c    internal force vector due to displcement      
       double precision, dimension(18)    :: F_vector
-      double precision, dimension(18)    :: bmat      
-      double precision, dimension(16)    :: R_vector      
-      double precision, dimension(18)    :: bmat_u      
+c          
+      double precision, dimension(18)    :: bmat   
+c    internal force vector due to relaxed strain         
+      double precision, dimension(16)    :: R_vector 
+c    Arranged B_matrix from diffrenti. vecotor of displacement shape fun           
+      double precision, dimension(18)    :: bmat_u
+c    DOF displacement  
       double precision, dimension(18)    :: displacement
+c    output parameter change in relaxed strain in last step. 
       double precision, dimension(16)    :: delta_relaxed_strain   
+c    derivation of displacement shape function with respect to xi,omega
       double precision, dimension(2,9)   :: dNd_xi
+c    derivation of relaxed_strain shape function wrt xi,omega      
       double precision, dimension(2,4)   :: dNd_PSI
+c    Jacobian matrix for DOF displcement      
       double precision, dimension(2,2)   :: xjaci
+c    Jacobian matrix for DOf relaxed strain 
       double precision, dimension(2,2)   :: xjaci_psi
+c    Four displacement gradient parameter u1,1 u1,2 u2,1 u2,2.
       double precision, dimension(4,9)   :: GradVariable
+c    Three strain values for each nodes e11,e22,e12=e21      
       double precision, dimension(3,9)   :: strain
+c    change in strain in current step  d-e11, d-e22, d-e12      
       double precision, dimension(3,9)   :: Deltastrain
+c    four relaxed strain for gauss point psi11,psi21,psi12,psi22     
       double precision, dimension(4,9)   :: relaxedstrain
+c    six relaxed strain gradient values for each guass points       
       double precision, dimension(6,9)   :: relaxedstraingradient
+c    six change in relaxed strain gradient values for last step      
       double precision, dimension(6,9)   :: delta_relaxedstraingradient
+c    for Langrange values at Centre node of element at each Gauusint pt.      
       double precision, dimension(4,9)   :: Langrangemulti
+c    Three Stress values at each Gauss Int. point.      
       double precision, dimension(3,9)   :: Sigma
+c    Six Higher Stress values at each Gauss Int. point.      
       double precision, dimension(6,9)   :: Tau
+c    Shape Matrix (identtity) related to langrange multiplier DOF.       
       double precision, dimension(4,4)   :: Nrhomatrix
+c    Elastic Matrix      
       double precision, dimension(3,3)   :: U_psilon
+c    Higher order Elastic Matrix      
       double precision, dimension(6,6)   :: Lambda
+c    Stiffness Matrix related to disp. and lagrannge DOF.       
       double precision, dimension(18,4)  :: stiffness_Urho
+c    Stiffness Matrix related to relaxed strain and lagrannge DOF.
       double precision, dimension(16,4)  :: stiffness_psirho
+c    Transpose of Stiffness_Urho
       double precision, dimension(4,18)  :: tra_stiffness_Urho
+c    Transpose of Stiffness_psirho
       double precision, dimension(4,16)  :: tra_stiffness_psirho
+c    Transpose of Nmatrix
       double precision, dimension(18,2)  :: T_Nmatrix
+c    Transpose of Mmatrix 
       double precision, dimension(18,4)  :: T_Mmatrix
+c    Transpose of Bmatrix
       double precision, dimension(18,3)  :: T_Bmatrix
+c    Transpose of Npsimatrix 
       double precision, dimension(16,4)  :: T_Npsimatrix
+c    Transpose of Bpsimatrix 
       double precision, dimension(16,6)  :: T_Bpsimatrix
+c    Shape matrix related to Displacement DOF.
       double precision, dimension(2,18)  :: Nmatrix
+c    Displacement Gradient Matrix
       double precision, dimension(4,18)  :: Mmatrix
+c    Differential Matrix B-matrix related to Displacement DOF.
       double precision, dimension(3,18)  :: Bmatrix
+c    Differential Matrix B-matrix related to relaxed strain DOF.
       double precision, dimension(6,16)  :: Bpsimatrix
+c    Shape matrix related to relaxed strain DOF.
       double precision, dimension(4,16)  :: Npsimatrix
+c    Stiffness matrix related to only Displacement DOF.      
       double precision, dimension(18,18) :: stiffness_UU 
-      double precision, dimension(16,16) :: stiffness_PsiPsi  
+c    Stiffness matrix related to only Relaxed-Strain DOF.  
+      double precision, dimension(16,16) :: stiffness_PsiPsi 
+c    Global Striffness Matrix of Element       
       double precision, dimension(38,38) :: amat
-      double precision, dimension(18,18) :: Mass_U      
+c    Mass Matrix      
+      double precision, dimension(18,18) :: Mass_U    
+c    Mass Matrix (Identity Matrix)        
       double precision, dimension(38,38) :: Mass_matrix   
+c    Global Right hand side Vector (F_int- F_ext)      
       double precision, dimension(16)    :: rhs_k            
 c 
       double precision :: E_modulus,Nue,micro_length,Density,
@@ -126,14 +203,15 @@ c
         Mass_matrix = 0.d0
 c
 c   
-!    Guass Weight of Guass integration points in respective order
+!    Guass Weight of 9 Guass integration points in respective order
       data Gauss_Weight /0.308641975309d0, 0.308641975309d0, 
      * 0.308641975309d0, 0.308641975309d0, 0.493827160494d0,
      * 0.493827160494d0, 0.493827160494d0, 0.493827160494d0, 
      * 0.79012345679d0/
 c
+c    This print the lflags which shows the procedure required to solve 
+c    the non-linear or linear set of equations.
 c
-!    write the adlmag
       write(*,*) lflags(3)		
 c
 !    this is to print the U and DU in .dat file 
@@ -145,14 +223,17 @@ c
       do i = 1, 34
         write(6,*) du(1,i)
       end do 
+c      
 !    this is to print the element number in .dat file      
       write(6,*) jelem				
+c      
 !    this is to print the coordintes of the nodes 
 !    of the respective element in .dat file      
       write(6,*) "this is a coords of nodes of current element"
       do i = 1, size(coords,1)
             write(6,'(20G12.4)') coords(i,:)
       end do
+c      
 !    this is to print the Element Properties in .dat file 
 *      write(*,*) "properties"
 *      write(*,*) props(1)
@@ -189,7 +270,7 @@ c
       end do
 c
 c
-************************************************************************
+c-----------------------------------------------------------------------
 !    loop over Gauss Integration Points
 !    There are total 9 integration points so it goes from 1 to 9.
 c
@@ -198,31 +279,27 @@ c
          write(6,*) "The integeration no. is"
          write(6,*) kintk
 !     Evaluate shape functions and derivatives
+c
          call shapefcn_U(dN_U,dNd_xi,kintk,ninpt,nnode,ndim)
 !     Now we have shape function and its derivates for displacement 
 !     degree of freedom. 
 *         write(6,*) "shape_function_u"
 *         write(6,*) dNd_xi
+c
          call shapefcn_PSI(dN_PSI,dNd_PSI,kintk,ninpt,nnode,ndim)
 *         write(6,*) "shape_function_PSI"
 *         write(6,*) dNd_PSI
 !     Now we have shape function and its derivates for relaxedstrain 
 !     degree of freedom.   
 c 
-*         do i = 1, size(dN_U,1)
-*            write(*,'(20G12.4)') dN_U(:)
-*         end do
-*
-*         do i = 1, size(dNd_xi,1)
-*            write(*,'(20G12.4)') dNd_xi(i,:)
-*         end do
 !       Evaluate Jacobian of displacement and psi shape function matrix
+c
          call jacobian_UU(djac,xjaci,jelem,ndim,nnode,coords,dNd_xi,
      1        pnewdt)
 *         write(6,*) "Jacobian of displacement"
 *         write(6,*) djac         
 *         write(6,*) xjaci
-                  
+c                  
          call jacobian_psipsi(djac_psi,xjaci_psi,jelem,ndim,nnode,
      1        coords,dNd_PSI,pnewdt)
 *         write(6,*) "Jacobian of PSI"
@@ -230,15 +307,19 @@ c
 *         write(6,*) xjaci_psi     
 c
 !       Evaluate B_matrix for displcement and psi 
-         call bmatrix_U(bmat_u,xjaci,dNd_xi,nnode,ndim)
+c
+         call bmatrix_U(bmat_u,xjaci,dNd_xi)
 c~          write(6,*) "bmat_u"         
 c~          write(6,*) bmat_u
-         call bmatrix_PSI(bmat_psi,xjaci_psi,dNd_PSI,nnode,ndim)
+c
+         call bmatrix_PSI(bmat_psi,xjaci_psi,dNd_PSI)
 c~          write(6,*) "bmat_psi"         
 c~          write(6,*) bmat_psi
 c
 c
-c***********************************************************************
+c-----------------------------------------------------------------------
+c       Assembly of Common Element Matrices :
+c
 !       Assembly of Nmatrix from shape function for displacement degree
 !       freedom.
          do i = 1, 2*nnode
@@ -366,12 +447,15 @@ c
 *            write(6,'(20G12.4)') Nrhomatrix(i,:)
 *         end do
 c         
-c***********************************************************************
-!       update of state variables.
-!       displacement gradient = GradVariable = 0.d0
+c-----------------------------------------------------------------------
+c       Calculation of all State Variables.
+c
+c   ------------------Displacement Gradient--------------------------
+!       Displacement gradient = GradVariable = 0.d0
 !       this is a transpose of Mmatrix
          T_Mmatrix = 0.d0
          T_Mmatrix = Transpose(Mmatrix)		
+c         
          do i = 1, 18
           do j = 1, 4
 *            write(6,*) T_Mmatrix(i,j)
@@ -388,6 +472,7 @@ c~          do i = 1, size(GradVariable,1)
 c~             write(6,'(20G12.4)') GradVariable(i,:)
 c~          end do
 c
+c   ----------------------Strain, Delta Strain-----------------------
 c
 !       strain = 0.d0
 !       Deltastrain = 0.d0
@@ -415,6 +500,7 @@ c~          do i = 1, size(Deltastrain,1)
 c~             write(6,'(20G12.4)')  Deltastrain(i,:)
 c~          end do
 c
+c    --------------------Relaxed Strain----------------------------
 c
 !       relaxedstrain = 0.d0
 !       This is a transpose of Npsimatrix
@@ -433,6 +519,7 @@ c~          do i = 1, size(relaxedstrain,1)
 c~             write(6,'(20G12.4)')  relaxedstrain(i,:)
 c~          end do
 c
+c     ------------------Relaxed Strain Gradient---------------------
 c
 !       relaxedstraingradient = 0.d0
 !       delta_relaxedstraingradient = 0.d0
@@ -464,6 +551,7 @@ c~          do i = 1, size(delta_relaxedstraingradient,1)
 c~             write(6,'(20G12.4)')  delta_relaxedstraingradient(i,:)
 c~          end do
 c
+c    --------------------Langrange Multiplier----------------------
 c         
          !Langrangemulti = 0.d0
          do i = 1, 4
@@ -478,80 +566,81 @@ c~          write(6,*) "this is la_multi"
 c~          do i = 1, size(Langrangemulti,1)
 c~             write(6,'(20G12.4)')  Langrangemulti(i,:)
 c~          end do
-c***********************************************************************
-*          write(6,*) "this is lemda and mue"	
-*          write(6,*) lemda
-*          write(6,*) mue
-*         write(6,*) "this is Deltastrain_1"
-*         do i = 1, size(Deltastrain,1)
-*            write(6,'(20G12.4)')  Deltastrain(i,:)
-*         end do
+c
+c-----------------------------------------------------------------------
 !       call the KUMAT to find the state variables Sigma and Tau
-!       and also get U_psilon and Lambda from KUMAT as output.
+c
+!       And also get U_psilon(Elastic Matrix) and Lambda(Higehr order
+!       -elastic matrix) from KUMAT as output.
+c
          call KUMAT(Sigma,Tau,U_psilon,Lambda,kintk,lemda,mue,
      1   micro_length,strain,relaxedstraingradient)
+c     
 !       Print the State variable Sigma in .dat file.     
 *         write(6,*) "this is Sigma"
 *         write(6,*) Sigma(:,1)
 *         do i = 1, size(Sigma,kintk)
 *            write(6,'(20G12.4)')  Sigma(i,:)
 *         end do
+c
 !       Print the State variable Tau in .dat file.
 *         write(6,*) "this is Tau"
 *         write(6,*) Tau(:,kintk)
 *         do i = 1, size(Tau,1)
 *            write(6,'(20G12.4)')  Tau(i,:)
 *         end do
+c
+!       Print the Elastic Matrix in .dat file.
 *          write(6,*) "this is Upsi_matrix"
 *          do i = 1, size(U_psilon,1)
 *            write(6,'(20G12.4)')  U_psilon(i,:)
 *          end do
-c***********************************************************************
+c
+!       Print the Higher order elastic matrix in .dat file.
+*          write(6,*) "this is Lambda"
+*          do i = 1, size(Lambda,1)
+*            write(6,'(20G12.4)')  Lambda(i,:)
+*          end do
+c
+c-----------------------------------------------------------------------
 c
 !       store state variables Sigma and Tau in Svars vector. :
-c~          do i = 1, 3
-c~             svars(i+(kintk-1)*9) = Sigma(i,kintk)
-c~          end do
-c~          do i = 4, 9
-c~             svars(i+(kintk-1)*9) = Tau(i-3,kintk)
-c~          end do
-c~ !       Print the State variable vector in .dat file.         
-c~          write(6,*) "this is state vars"
-c~          do i = 1, 9
-c~             write(6,'(20G12.4)')  svars(i+(kintk-1)*9)
-c~          end do
 c
+!       store the 3 stress values
          do i = 1, 3
             svars(i+(kintk-1)*22) = Sigma(i,kintk)
          end do
+c  
+!       store the 6 higher order stress values       
          do i = 4, 9
             svars(i+(kintk-1)*22) = Tau(i-3,kintk)
          end do
+c
+!       store the 4 relaxed strain values
          do i = 10, 13
             svars(i+(kintk-1)*22) = relaxedstrain(i-9,kintk)
          end do
+c
+!       store the 6 Strain Gradient Values
          do i = 14, 19
             svars(i+(kintk-1)*22) = relaxedstraingradient(i-13,kintk)
          end do
+c
+!       store the 3 normal strain values
          do i = 20, 22
             svars(i+(kintk-1)*22) = strain(i-19,kintk)
          end do
+c
 !       Print the State variable vector in .dat file.         
 c~          write(6,*) "this is state vars"
 c~          do i = 1, 22
 c~             write(6,'(20G12.4)')  svars(i+(kintk-1)*22)
-c~          end do         
-c***********************************************************************
-!       Find the Element Stiffness Matrices:
+c~          end do   
+c      
+c-----------------------------------------------------------------------
+!       Calculation of the Element Stiffness Matrices:
 c
-*         write(6,*) "Jacobian of displacement_1"
-*         write(6,*) djac       
-*         write(6,*) "Gausss weight"
-*         write(6,*) Gauss_weight(kintk) 
-*         write(6,*) "T_Bmatrix"
-*         do i = 1, size(T_Bmatrix,1)
-*            write(6,'(20G12.4)')  T_Bmatrix(i,:)
-*         end do 
+c
 !       Find the UU_stiffness matrix - dimension(18*18)
          do i = 1, 18
           do j = 1, 18
@@ -623,24 +712,9 @@ c~             write(6,'(20G12.4)')  stiffness_psirho(i,:)
 c~          end do
 c
 c
-!       Find the Mass_U matrix - dimension(18*18)
-         T_Nmatrix = Transpose(Nmatrix)
-         do i = 1, 18
-          do j = 1, 18
-           do k = 1, 2
-               Mass_U(i,j) = Mass_U(i,j) + Density*T_Nmatrix(i,k)
-     1                       *T_Nmatrix(j,k)*djac*Gauss_weight(kintk)
-           end do
-          end do
-         end do
-!       Print the Mass_U matrix in .dat file.          
-*         write(6,*) "this is Mass_U"
-*         do i = 1, size(Mass_U,1)
-*            write(6,'(20G12.4)')  Mass_U(i,:)
-*         end do
-c***********************************************************************
+c-----------------------------------------------------------------------
 c
-!       Find the internal force vectors : 
+!       Calculation of the internal force vectors : 
 c
 !       Find the F_vector which includes the internal forces due to
 !       the displcement of all nodes.
@@ -699,9 +773,11 @@ c~          end do
 c
       end do 
 !       loop over integration points is end.
-c***********************************************************************
-!       Assembaly of AMATRX and RHS acorrding to the arragement of 
-!       degrees of freedom of the all 9 nodes of the element.
+c-----------------------------------------------------------------------
+!        Assembaly of AMATRX(Global Stiffness Matrix) and 
+!        RHS(Right hand side vector F_int-F_ext) acorrding to the 
+!        arragement of degrees of freedom of the 
+!        all 9 nodes of the element.
 c      
        tra_stiffness_Urho = TRANSPOSE(stiffness_Urho)   
        tra_stiffness_psirho = TRANSPOSE(stiffness_psirho) 
@@ -715,7 +791,8 @@ c
 *          write(*,'(20G12.4)')  amat(i,:)
 *      end do
 c
-C           ___                              ____
+c  ------------Assembly of Global Stiffness Matrix-----------------
+c           ___                             ____
 !      K = |                                     |
 !          | K_UU          0          -K_urho    |
 !          |  0         K_psipsi       K_psirho  |
@@ -766,32 +843,13 @@ c
       end do
 c
 c
-!     Initialize the mass matrix.
-      do i = 1, 38
-            Mass_matrix(i,i) = 1.d0
-      end do
-c
-!     assign the amat to the amatrx which is common matrix for
-!     stiffness.
-!      do i = 1, 38
-!         do j = 1, 38
-!            amatrx(i,j) = amatrx(i,j) + amat(i,j)
-!         end do
-!      end do
 c
 !     assign the 0 value to the diagonal elements(35,36,37,38) of amat.
       do i=35, 38
 	     amatrx(i,i) = 1.0e-10
       end do
 c
-!     if lflags(3) = 1 then Mass_matrix is assigned to the amatrx.
-!      if(lflags(3) .eq. 1) then
-!            do i = 1, 38
-!                do j = 1, 38
-!                   amatrx(i,j) = Mass_matrix(i,j)
-!                end do
-!            end do
-!      endif
+c
 c      
 !     print the amatrx into the .dat file.      
       write(6,*) "amatrx"
@@ -801,24 +859,37 @@ c
 c
 c
 c
+c   --------------Assembly of Global RHS-------------------------
+c
+c                ___     ____
+c               |            |
+c               |   F_int    |
+c       RHS =   |   R_int    |
+c               |   S_int    |
+c               |___     ____|
+c
+c
+c  
 !     Assemble the RHS matrix.
 !     rhs(1:18) = F_vector(1:18)
       do i = 1, 18
-         rhs(i) = rhs(i) - F_vector(i)
+         rhs(i) = rhs(i) + F_vector(i)
       end do
 c
 c
 !     rhs(19:34) = R_vector(1:16)
       do i = 19, 34
-         rhs(i) = rhs(i) - R_vector(i-18)
+         rhs(i) = rhs(i) + R_vector(i-18)
       end do
 c
 c
 !     rhs(35:38) = S_vector(1:4)
       do i = 35, 38
-         rhs(i) = rhs(i) - S_vector(i-34)
+         rhs(i) = rhs(i) + S_vector(i-34)
       end do
 c
+c
+c     ---This is to add the external force to the internal force.---
 c
       if (NDLOAD .ge. 1) then
           write(*,*) "call KDLOAD"
@@ -828,6 +899,7 @@ c
           end do          
       end if
 c
+c ---------------------------------------------------------------------
 c
 !     print the RHS matrix into the .dat file.      
       write(6,*) "rhs"
@@ -837,8 +909,10 @@ c
 c
 c
       return
-      end subroutine UEL_2D       
+      end subroutine UEL       
 !     END of the main subroutine UEL.   
+c***********************************************************************
+c
 c***********************************************************************
       subroutine shapefcn_U(dN_U,dNd_xi,kintk,ninpt,nnode,ndim)
 c
@@ -849,7 +923,8 @@ c
       double precision :: dN_U,dNd_xi
       dN_U = 0.d0
       dNd_xi = 0.d0
-c     
+c  
+c    -------- Coordinates of the Gauss Points in Unit domain --------   
       data  coord28 /-1.d0, -1.d0,
      2                1.d0, -1.d0,
      3                1.d0,  1.d0,
@@ -862,11 +937,12 @@ c
 c     
 c  2D 9-nodes
 c
-c     determine (g,h,r)
+c     Determine the variable Xi and Omega :
         xi = coord28(1,kintk)*gaussCoord
         omega = coord28(2,kintk)*gaussCoord
 c
-c     shape functions
+c     Shape Functions (Quadratic - 3 points in each dirction) :
+c
         dN_U(1) = 0.25d0*xi*(xi-1.d0)*omega*(omega-1.d0)
         dN_U(2) = 0.25d0*xi*(xi+1.d0)*omega*(omega-1.d0)
         dN_U(3) = 0.25d0*xi*(xi+1.d0)*omega*(omega+1.d0)
@@ -877,7 +953,8 @@ c     shape functions
         dN_U(8) = 0.5d0*xi*(xi-1.d0)*(1.d0-omega*omega)
         dN_U(9) = (1.d0-xi*xi)*(1.d0-omega*omega)      
 c
-c     derivative d(Ni)/d(g)
+c     derivative d(N_U)/d(Xi) :
+c
         dNd_xi(1,1) = -0.5d0*xi*omega-0.25d0*omega*omega+0.25d0*omega
      1   +0.5d0*xi*omega*omega
         dNd_xi(1,2) = -0.5d0*xi*omega+0.5d0*xi*omega*omega
@@ -892,7 +969,8 @@ c     derivative d(Ni)/d(g)
         dNd_xi(1,8) = -0.5d0+0.5d0*omega*omega+xi-xi*omega*omega
         dNd_xi(1,9) = -2.d0*xi+2.d0*xi*omega*omega
 c
-c     derivative d(Ni)/d(h)
+c     derivative d(N_U)/d(Omega) :
+c
         dNd_xi(2,1) = -0.25d0*xi*xi-0.5d0*xi*omega+0.25d0*xi
      1   +0.5d0*xi*xi*omega
         dNd_xi(2,2) = -0.25d0*xi*xi+0.5d0*xi*xi*omega
@@ -906,9 +984,11 @@ c     derivative d(Ni)/d(h)
         dNd_xi(2,7) = -0.5d0*xi*xi+omega-xi*xi*omega+0.5d0
         dNd_xi(2,8) = xi*omega-xi*xi*omega
         dNd_xi(2,9) = -2.d0*omega+2.d0*xi*xi*omega     
+c        
       return
       end subroutine shapefcn_U
 c***********************************************************************
+c
 c***********************************************************************
       subroutine shapefcn_PSI(dN_PSI,dNd_PSI,kintk,ninpt,nnode,ndim)
 c
@@ -919,7 +999,8 @@ c
       double precision :: dN_PSI,dNd_PSI
       dN_PSI = 0.d0
       dNd_PSI = 0.d0
-c     
+c
+c    -------- Coordinates of the Gauss Points in Unit domain --------      
       data  coord28 /-1.d0, -1.d0,
      2                1.d0, -1.d0,
      3                1.d0,  1.d0,
@@ -935,33 +1016,46 @@ c
 c     determine (xi,omega)
          xi = coord28(1,kintk)*gaussCoord
          omega = coord28(2,kintk)*gaussCoord
-c     shape functions
+c         
+c     Shape Functions (bi-linear - 2 points in each direction)
+c
          dN_PSI(1) = 0.25d0*(1.d0-xi)*(1.d0-omega)
          dN_PSI(2) = 0.25d0*(1.d0+xi)*(1.d0-omega)
          dN_PSI(3) = 0.25d0*(1.d0+xi)*(1.d0+omega)
          dN_PSI(4) = 0.25d0*(1.d0-xi)*(1.d0+omega)
-c     derivative d(Ni)/d(xi)
+c
+c     derivative d(N_U)/d(xi)
+c
          dNd_PSI(1,1) = 0.25d0*(-1.d0+omega)
          dNd_PSI(1,2) = 0.25d0*(1.d0-omega)
          dNd_PSI(1,3) = 0.25d0*(1.d0+omega)
          dNd_PSI(1,4) = 0.25d0*(-1.d0-omega)         
-c     derivative d(Ni)/d(omega)
+c
+c     derivative d(N_U)/d(omega)
+c
          dNd_PSI(2,1) = 0.25d0*(-1.d0+xi)
          dNd_PSI(2,2) = 0.25d0*(-1.d0-xi) 
          dNd_PSI(2,3) = 0.25d0*(1.d0+xi) 
          dNd_PSI(2,4) = 0.25d0*(1.d0-xi)     
+c
       return
       end subroutine shapefcn_PSI
+c***********************************************************************
+c
 c***********************************************************************
       subroutine jacobian_UU(djac,xjaci,jelem,ndim,nnode,coords,dNd_xi,
      1        pnewdt)
 c
-c     Notation: djac - Jac determinant; xjaci - inverse of Jac matrix 
+c     Notation : xjac  - Jacobian Matrix 
+c              : djac  - Jacobian determinant 
+c              : xjaci - Inverse of Jacobian matrix 
 c                          
       include 'aba_param.inc'
       dimension xjac(2,2),xjaci(2,2),coords(2,9),dNd_xi(2,9)
       double precision :: xjac,xjaci,dNd_xi,djac,coords
       djac = 0.d0
+c
+c     -------Initialization of xjac and xjaci---------
 c
       do i = 1, ndim
         do j = 1, ndim
@@ -969,6 +1063,8 @@ c
           xjaci(i,j) = 0.d0
         end do
       end do
+c
+c    --------Define Jacobian Matrix xjac----------
 c
       do inod= 1, 9
          do idim = 1, 2
@@ -984,9 +1080,14 @@ c
 *            write(*,'(20G12.4)') xjac(i,:)
 *      end do      
 c
+c    --------Determinant of Jacobian Matrix-----------
+c
       djac = xjac(1,1)*xjac(2,2) - xjac(1,2)*xjac(2,1)
 *      write(*,*) "det of jacobian"
 *      write(*,*) djac
+c
+c    -------Define Inverse of Jacobian matrix xjaci---------
+c
        if (djac .gt. 0.d0) then
          ! jacobian is positive - o.k.
          xjaci(1,1) =  xjac(2,2)/djac
@@ -996,20 +1097,19 @@ c
 *         do i = 1, size(xjaci,1)
 *            write(*,'(20G12.4)') xjaci(i,:)
 *         end do           
-c       else
-         ! negative or zero jacobian
-c         write(7,*)'WARNING: element',jelem,'has neg. Jacobian'
-c         pnewdt = 0.25d0
        endif
       return
       end subroutine jacobian_UU
 c***********************************************************************
+c
 c***********************************************************************
       subroutine jacobian_psipsi(djac_psi,xjaci_psi,jelem,ndim,nnode,
      1        coords,dNd_PSI,pnewdt)
 c
-c     Notation: djac - Jac determinant; xjaci - inverse of Jac matrix 
-c                          
+c     Notation : xjac_psi  - Jacobian Matrix 
+c              : djac_psi  - Jacobian determinant 
+c              : xjaci_psi - Inverse of Jacobian matrix 
+c                         
       include 'aba_param.inc'
 c
       dimension xjac_psi(2,2),xjaci_psi(ndim,2),coords(2,9),
@@ -1017,12 +1117,16 @@ c
       double precision :: xjac_psi,xjaci_psi,dNd_PSI,djac_psi,coords
       djac_psi = 0.d0
 c
+c     -------Initialization of xjac_psi and xjaci_psi---------
+c
       do i = 1, ndim
         do j = 1, ndim
           xjac_psi(i,j)  = 0.d0
           xjaci_psi(i,j) = 0.d0
         end do
       end do
+c
+c    --------Define Jacobian Matrix xjac_psi----------
 c
       do inod= 1, 4
          do idim = 1, ndim
@@ -1033,44 +1137,50 @@ c
          end do 
       end do
 c
-*      do i = 1, size(xjac_psi,1)
-*            write(*,'(20G12.4)') xjac_psi(i,:)
-*      end do 
+c    --------Determinant of Jacobian Matrix-----------
+c     
        djac_psi = xjac_psi(1,1)*xjac_psi(2,2) 
      1           -xjac_psi(1,2)*xjac_psi(2,1)
 *      write(*,*) djac_psi
+c
+c    -------Define Inverse of Jacobian matrix xjaci_psi---------
+c
        if (djac_psi .gt. 0.d0) then
          ! jacobian is positive - o.k.
          xjaci_psi(1,1) =  xjac_psi(2,2)/djac_psi
          xjaci_psi(2,2) =  xjac_psi(1,1)/djac_psi
          xjaci_psi(1,2) = -xjac_psi(1,2)/djac_psi
          xjaci_psi(2,1) = -xjac_psi(2,1)/djac_psi
-       else
-         ! negative or zero jacobian
-         write(7,*)'WARNING: element',jelem,'has neg. Jacobian'
-         pnewdt = 0.25d0
        endif
+c       
       return
       end subroutine jacobian_psipsi
 c***********************************************************************
-c***********************************************************************
-      subroutine bmatrix_U(bmat_u,xjaci,dNd_xi,nnode,ndim)
 c
-c     Notation: bmat(i) ....dN1/dx, dN1/dy, dN2/dx, dN2/dy...      
+c***********************************************************************
+      subroutine bmatrix_U(bmat_u,xjaci,dNd_xi)
+c
+c     Notation: bmat_u(i) ....dN_U1/dx, dN_U1/dy, dN_U2/dx, dN_U2/dy...
+c      
          include 'aba_param.inc'
-         dimension bmat_u(*),dNd_xi(ndim,*),xjaci(ndim,*)
+         dimension bmat_u(18),dNd_xi(2,9),xjaci(2,2)
          double precision :: bmat_u,dNd_xi,xjaci
-c    
+c  
+c  ----------Initialization of the Bmatrix---------------
+c  
          do i = 1, nnode*ndim
             bmat_u(i) = 0.d0
          end do
+c
+c  Find the bmat_u which contains the derivatives of shape functions
+c  with respect to cartesian coordinates x and y.
 c    
-         do inod = 1, nnode
-          do ider = 1, ndim
-           do idim = 1, ndim
-            icomp = idim + (inod - 1)*ndim
-            bmat_u(icomp)=bmat_u(icomp)
-     1       +xjaci(idim,ider)*dNd_xi(ider,inod) 
+         do i = 1, 9
+          do j = 1, 2
+           do k = 1, 2
+            m = k + (i - 1)*2
+c            
+            bmat_u(m)=bmat_u(m)+xjaci(k,j)*dNd_xi(j,i)
            end do
           end do
          end do 
@@ -1079,24 +1189,30 @@ c
       end subroutine bmatrix_U
 c    
 c***********************************************************************
-c***********************************************************************
-      subroutine bmatrix_PSI(bmat_psi,xjaci_psi,dNd_PSI,nnode,ndim)
 c
-c     Notation: bmat(i) ....dN1/dx, dN1/dy, dN2/dx, dN2/dy...      
+c***********************************************************************
+      subroutine bmatrix_PSI(bmat_psi,xjaci_psi,dNd_PSI)
+c
+c     Notation: bmat_psi(i) ....dN1/dx, dN1/dy, dN2/dx, dN2/dy...      
          include 'aba_param.inc'
-         dimension bmat_psi(*),dNd_PSI(ndim,*),xjaci_psi(ndim,*)
+         dimension bmat_psi(8),dNd_PSI(2,4),xjaci_psi(2,2)
          double precision :: bmat_psi,dNd_PSI,xjaci_psi
-c    
+c  
+c  ----------Initialization of the Bmatrix---------------
+c   
          do i = 1, 4*ndim
                bmat_psi(i) = 0.d0
          end do
 c           
-         do inod = 1, 4
-          do ider = 1, ndim
-           do idim = 1, ndim
-            icompo = idim + (inod - 1)*ndim
-            bmat_psi(icompo)=bmat_psi(icompo)
-     1       +xjaci_psi(idim,ider)*dNd_PSI(ider,inod) 
+c  Find the bmat_psi which contains the derivatives of shape functions
+c  with respect to cartesian coordinates x and y.
+c   
+         do i = 1, 4
+          do j = 1, 2
+           do k = 1, 2
+            n = k + (i - 1)*2
+c            
+            bmat_psi(n)=bmat_psi(n)+xjaci_psi(k,j)*dNd_PSI(j,i)
            end do
           end do
          end do 
@@ -1105,6 +1221,7 @@ c
       end subroutine bmatrix_PSI
 c    
 c***********************************************************************
+c
 c***********************************************************************
       subroutine KUMAT(Sigma,Tau,C_matrix,D_matrix,kintk,lemda,mue,
      1 micro_length,strain,relaxedstraingradient)
@@ -1115,20 +1232,21 @@ c
       dimension C_matrix(3,3), D_matrix(6,6), sigma(3,9), Tau(6,9),
      1 Lambda(6,6), U_psilon(3,3), strain(3,9),
      2 relaxedstraingradient(6,9)
-c     
+c    
+c   ------------Intialization of C_matrix and D_matrix--------------- 
+c 
       C_matrix = 0.d0
       D_matrix = 0.d0
-*      write(6,*) "this is lemda and mue"
-*      write(6,*) lemda
-*      write(6,*) mue
-*         write(6,*) "this is Deltastrain_2"
-*         do i = 1, size(Deltastrain,1)
-*            write(6,'(20G12.4)')  Deltastrain(i,:)
-*         end do
+c
 c
 *      write(6,*) "this is lemda and mue"	
 *      write(6,*) lemda
 *      write(6,*) mue
+*      write(6,*) "micro"
+*      write(6,*) micro_length
+c
+c   ----------------Elastic Matrix-----------------------
+c
       C_matrix(1,1) = lemda + 2.d0*mue
       C_matrix(1,2) = lemda
       C_matrix(1,3) = 0.d0
@@ -1143,42 +1261,47 @@ c
       do i = 1, size(C_matrix,1)
         write(6,'(20G12.4)')  C_matrix(i,:)
       end do
-      do i = 1, 6
-         do j = 1, 6
-            D_matrix(j,i) = 0.d0
-         end do
-      end do
-      write(6,*) "micro"
-      write(6,*) micro_length
-c~       umat-----1
-c~       D_matrix(1,1) = (lemda + 2.d0*mue)*micro_length*micro_length
-c~       D_matrix(1,6) = 0.5d0*lemda*micro_length*micro_length
-c~       D_matrix(2,2) = mue*micro_length*micro_length
-c~       D_matrix(2,6) = 0.5d0*mue*micro_length*micro_length
-c~       D_matrix(3,3) = mue*micro_length*micro_length
-c~       D_matrix(3,5) = 0.5d0*mue*micro_length*micro_length 
-c~       D_matrix(4,4) = (lemda + 2.d0*mue)*micro_length*micro_length
-c~       D_matrix(4,5) = 0.5d0*lemda*micro_length*micro_length
-c~       D_matrix(5,3) = 0.5d0*mue*micro_length*micro_length
-c~       D_matrix(5,4) = 0.5d0*lemda*micro_length*micro_length
-c~       D_matrix(5,5) =0.25d0*(lemda + 3.d0*mue)*micro_length*micro_length
-c~       D_matrix(6,1) = 0.5d0*lemda*micro_length*micro_length
-c~       D_matrix(6,2) = 0.5d0*mue*micro_length*micro_length
-c~       D_matrix(6,6) =0.25d0*(lemda + 3.d0*mue)*micro_length*micro_length
 c
-c~          umat----------2
-         D_matrix(2,2) = 1.d0*micro_length*micro_length*mue
-         D_matrix(2,6) = -0.5d0*micro_length*micro_length*mue
-         D_matrix(3,3) = 1.d0*micro_length*micro_length*mue
-         D_matrix(3,5) = -0.5d0*micro_length*micro_length*mue
-         D_matrix(5,3) = -0.5d0*micro_length*micro_length*mue
-         D_matrix(5,5) = 0.25d0*micro_length*micro_length*mue
-         D_matrix(6,2) = -0.5d0*micro_length*micro_length*mue
-         D_matrix(6,6) = 0.25d0*micro_length*micro_length*mue
+c    ------------Higher order Elastic Matrix----------------
+c
+c    --------D_matrix for General Strain Gradient solid-----------
+c   Introduced by : Amanatidou and Aravas
+c
+      D_matrix(1,1) = (lemda + 2.d0*mue)*micro_length*micro_length
+      D_matrix(1,6) = 0.5d0*lemda*micro_length*micro_length
+      D_matrix(2,2) = mue*micro_length*micro_length
+      D_matrix(2,6) = 0.5d0*mue*micro_length*micro_length
+      D_matrix(3,3) = mue*micro_length*micro_length
+      D_matrix(3,5) = 0.5d0*mue*micro_length*micro_length 
+      D_matrix(4,4) = (lemda + 2.d0*mue)*micro_length*micro_length
+      D_matrix(4,5) = 0.5d0*lemda*micro_length*micro_length
+      D_matrix(5,3) = 0.5d0*mue*micro_length*micro_length
+      D_matrix(5,4) = 0.5d0*lemda*micro_length*micro_length
+      D_matrix(5,5) =0.25d0*(lemda + 3.d0*mue)*micro_length*micro_length
+      D_matrix(6,1) = 0.5d0*lemda*micro_length*micro_length
+      D_matrix(6,2) = 0.5d0*mue*micro_length*micro_length
+      D_matrix(6,6) =0.25d0*(lemda + 3.d0*mue)*micro_length*micro_length
+c
+c    --------D_matrix for Couple Stress Solid--------------------
+c   Introduced by : John Y. shu
+c
+c~          D_matrix(2,2) = 1.d0*micro_length*micro_length*mue
+c~          D_matrix(2,6) = -0.5d0*micro_length*micro_length*mue
+c~          D_matrix(3,3) = 1.d0*micro_length*micro_length*mue
+c~          D_matrix(3,5) = -0.5d0*micro_length*micro_length*mue
+c~          D_matrix(5,3) = -0.5d0*micro_length*micro_length*mue
+c~          D_matrix(5,5) = 0.25d0*micro_length*micro_length*mue
+c~          D_matrix(6,2) = -0.5d0*micro_length*micro_length*mue
+c~          D_matrix(6,6) = 0.25d0*micro_length*micro_length*mue
+c
+c
       write(6,*) "this is D_matrix"
       do i = 1, size(D_matrix,1)
         write(6,'(20G12.4)')  D_matrix(i,:)
       end do
+c
+c
+c   Determine another state variable Stress(Sigma) :
 c
       do i = 1, 3
          do j = 1, 3
@@ -1188,14 +1311,18 @@ c
             write(6,*) C_matrix(i,j)
             write(6,*) strain(j,kintk)
             write(6,*) C_matrix(i,j)*strain(j,kintk)
-  !          U_psilon(i,j) = C_matrix(i,j)
+!           U_psilon(i,j) = C_matrix(i,j)
          end do
       end do
+c
 !       U_psilon = C_matrix
+c
       write(6,*) "this is Sigma" 
       do i = 1, size(Sigma,1)
         write(6,'(20G12.4)')  Sigma(i,:)
       end do
+c
+c   Determine another state variable Higher order Stress(Tau) :
 c
       do i = 1, 6
          do j = 1, 6
@@ -1205,19 +1332,28 @@ c
             write(6,*) D_matrix(i,j)
             write(6,*) relaxedstraingradient(j,kintk)
             write(6,*) D_matrix(i,j)*relaxedstraingradient(j,kintk)
-!       Lambda(i,j) = D_matrix(i,j)
+!           Lambda(i,j) = D_matrix(i,j)
          end do
       end do
+c  
+!       Lambda = D_matrix
+c    
       write(6,*) "this is Tau" 
       do i = 1, size(Tau,1)
         write(6,'(20G12.4)')  Tau(i,:)
       end do
+c
       return 
       end subroutine KUMAT
 c***********************************************************************
+c
 c***********************************************************************
       subroutine KDLOAD(rhs_k,NDLOAD,coords,mdload,ADLMAG,jdltyp)
-c      
+c    
+c   Subroutine to add the externally applied load to the internal load
+c   because in UEL concetrated and distributed load can not directly
+c   added to the internal load because of different boundary integrals. 
+c  
       double precision :: XI,Weight,Knode,KAssembly,BF_gam,KTYP,Bxi,
      1  Bweight,BJ_S,BJ_X,BJ_Y,BN_gam,BN_gam_xi,KNODE_S,KRHS,
      2  ADLMAG,K,rhs_k
@@ -1225,57 +1361,77 @@ c
       dimension XI(2),Weight(2),Knode(3,4),KAssembly(3,8),BF_gam(3),
      1  BN_gam(3,4),BN_gam_xi(3,4),coords(2,9),
      2  ADLMAG(mdload,1),jdltyp(mdload,1),rhs_k(16)
-c      
+c    
+c  ----------Two integration points(second order)----------------
+c  
         XI(1) = -(1.d0/3.d0)**0.5
         XI(2) =  (1.d0/3.d0)**0.5
 c      
-*        write(*,*) "rhs_inp"
-*        write(*,*) rhs
+c  ----------Gauss weight of two integration points----------
+c
         Weight(1) = 1
         Weight(2) = 1
 c
+c  ----------Nodes on the each edge of the element  
+c
+c  nodes on bottom edge :
         Knode(1,1) = 1
         Knode(2,1) = 2
         Knode(3,1) = 5
+c  nodes on right edge :        
         Knode(1,2) = 2
         Knode(2,2) = 3
         Knode(3,2) = 6
+c  nodes on Top edge :        
         Knode(1,3) = 3
         Knode(2,3) = 4
         Knode(3,3) = 7
+c  nodes on left edge :        
         Knode(1,4) = 1
         Knode(2,4) = 4
         Knode(3,4) = 8
 c      
+c
+c  Contribution of this all edge nodes into the external force vectors
+c  are decided.
+c
+c  Bottom edge nodes contribution to the x-direction external forces.
         KAssembly(1,1) = 1
         KAssembly(2,1) = 3
         KAssembly(3,1) = 9
+c  Right edge nodes contribution to the x-direction external forces.
         KAssembly(1,2) = 3
         KAssembly(2,2) = 5
         KAssembly(3,2) = 11
+c  Top edge nodes contribution to the x-direction external forces.        
         KAssembly(1,3) = 5
         KAssembly(2,3) = 7
         KAssembly(3,3) = 13
+c  Left edge nodes contribution to the x-direction external forces.        
         KAssembly(1,4) = 7
         KAssembly(2,4) = 1
         KAssembly(3,4) = 15
+c  Bottom edge nodes contribution to the y-direction external forces.        
         KAssembly(1,5) = 2
         KAssembly(2,5) = 4
         KAssembly(3,5) = 10
+c  Right edge nodes contribution to the y-direction external forces.
         KAssembly(1,6) = 4
         KAssembly(2,6) = 6
         KAssembly(3,6) = 12
+c  Top edge nodes contribution to the y-direction external forces.
         KAssembly(1,7) = 6
         KAssembly(2,7) = 8
         KAssembly(3,7) = 14
+c  Left edge nodes contribution to the y-direction external forces.
         KAssembly(1,8) = 8
         KAssembly(2,8) = 2
         KAssembly(3,8) = 16
 c
 c
 c
-c       do KLOAD = 1, NDLOAD
-        KLOAD = NDLOAD 
+c       do KLOAD = 1, NDLOAD ---for multiple external load 
+        KLOAD = NDLOAD ! for single external load
 c
         do i = 1, 3
               BF_gam(i) = 0.d0
@@ -1288,6 +1444,8 @@ c
 c
         KTYP = JDL
 c
+c   -----Loop over integration points
+c
         do kgauss = 1, 2
 c          
           Bxi = XI(kgauss)
@@ -1296,7 +1454,9 @@ c
           BJ_S = 0.d0
           BJ_X = 0.d0
           BJ_Y = 0.d0
-c            
+c 
+c   Shape functions for each surface :
+c        
           BN_gam(1,1) = 0.5d0*Bxi*(Bxi-1.d0)
           BN_gam(2,1) = 0.5d0*Bxi*(Bxi+1.d0)
           BN_gam(3,1) = 1.d0-Bxi**2
@@ -1309,7 +1469,9 @@ c
           BN_gam(1,4) = 0.5d0*Bxi*(Bxi+1.d0)
           BN_gam(2,4) = 0.5d0*Bxi*(Bxi-1.d0)
           BN_gam(3,4) = 1.d0-Bxi**2
-c            
+c     
+c   Derivatives of shape function with variable Bxi. :
+c       
           BN_gam_xi(1,1) = Bxi-0.5d0            
           BN_gam_xi(2,1) = Bxi+0.5d0 
           BN_gam_xi(3,1) = -2.d0*Bxi
@@ -1335,8 +1497,12 @@ c
      1                    *BJ_S*Bweight
           end do
 c
+c    end of Loop over integration points
+c
         end do
-c      
+c   
+c    Loop to add the external load to the internal load :
+c   
         do i = 1, 3
   	      K = JDLTYP(1,1)
 	      KRHS = KAssembly(i,K)
@@ -1348,6 +1514,6 @@ c
 c         
       return 
       end subroutine KDLOAD
-************************************************************************
+c***********************************************************************
 
 
