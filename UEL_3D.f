@@ -15,7 +15,7 @@ c
      4 energy(*),v(ndofel)
 c
 !    Assign the values for some basics parameters.
-      parameter (ndim=3, nnodemax=27, ninpt=27, nsvint=24)
+      parameter (ndim=3, nnodemax=27, ninpt=27, nsvint=18)
 c
 c
 c    ndim      ... number of spatial dimensions
@@ -190,7 +190,7 @@ c
 c
 ************************************************************************
 !    loop over Gauss Integration Points
-!    There are total 9 integration points so it goes from 1 to 9.
+!    There are total 27 integration points so it goes from 1 to 27.
 c
       do kintk = 1, 27
 c
@@ -251,10 +251,10 @@ c
             Nmatrix(3,(3*i))   = dN_U(i)
          end do
 !       print the Nmatrix in .dat file            
-         write(6,*) "Nmatrix is here"
-         do i = 1, size(Nmatrix,1)
-            write(6,'(40G12.4)') Nmatrix(i,:)
-         end do
+c~          write(6,*) "Nmatrix is here"
+c~          do i = 1, size(Nmatrix,1)
+c~             write(6,'(40G12.4)') Nmatrix(i,:)
+c~          end do
 c    
 c     
 !       Assembly of Mmatrix from derivatives of shape functions for 
@@ -283,10 +283,10 @@ c
             Mmatrix(9,3*i)   = Bmat_u(3*i-1)
          end do  
 !       print the Mmatrix in .dat file         
-         write(6,*) 'this is mmatrix'
-         do i = 1, size(Mmatrix,1)
-            write(6,'(85G12.4)') Mmatrix(i,:)
-         end do         
+c~          write(6,*) 'this is mmatrix'
+c~          do i = 1, size(Mmatrix,1)
+c~             write(6,'(85G12.4)') Mmatrix(i,:)
+c~          end do         
 c
 c
 !       Assembly of Bmatrix from derivatives of shape functions for 
@@ -312,10 +312,10 @@ c
             Bmatrix(6,3*i)   = Bmat_u(3*i-1)
          end do
 !       print the Bmatrix in .dat file         
-         write(6,*) 'this is Bmatrix'
-         do i = 1, size(Bmatrix,1)
-            write(6,'(85G12.4)') Bmatrix(i,:)
-         end do
+c~          write(6,*) 'this is Bmatrix'
+c~          do i = 1, size(Bmatrix,1)
+c~             write(6,'(85G12.4)') Bmatrix(i,:)
+c~          end do
 c
 c
 !       Assembly of Npsimatrix from shape functions for 
@@ -344,10 +344,10 @@ c
             Npsimatrix(9,9*i)   = dN_PSI(i)
          end do
 !       print the Npsimatrix in .dat file
-         write(6,*) 'this is Npsimatrix'
-         do i = 1, size(Npsimatrix,1)
-            write(6,'(20G12.4)') Npsimatrix(i,:)
-         end do
+c~          write(6,*) 'this is Npsimatrix'
+c~          do i = 1, size(Npsimatrix,1)
+c~             write(6,'(20G12.4)') Npsimatrix(i,:)
+c~          end do
 c
 c
 !       Assembly of Bpsimatrix from derivatives of shape functions for 
@@ -405,10 +405,10 @@ c
 c
          end do
 !       print the Bpsimatrix in .dat file         
-         write(6,*) 'this is Bpsimatrix'
-         do i = 1, size(Bpsimatrix,1)
-            write(6,'(20G12.4)') Bpsimatrix(i,:)
-         end do
+c~          write(6,*) 'this is Bpsimatrix'
+c~          do i = 1, size(Bpsimatrix,1)
+c~             write(6,'(20G12.4)') Bpsimatrix(i,:)
+c~          end do
 c
 c
 !       Assembly of Nrhomatrix for lagrange_multiplier D.O.F.
@@ -449,10 +449,10 @@ c***********************************************************************
          end do 
 c         
 !       Print the displcement gradient in .dat file.           
-         write(6,*) "this is gradient variable"
-         do i = 1, size(GradVariable,1)
-            write(6,'(20G12.4)') GradVariable(i,:)
-         end do
+c~          write(6,*) "this is gradient variable"
+c~          do i = 1, size(GradVariable,1)
+c~             write(6,'(20G12.4)') GradVariable(i,:)
+c~          end do
 c
 c
 !       strain = 0.d0
@@ -471,15 +471,15 @@ c
          end do
 c
 !       Print the Strain in .dat file.
-         write(6,*) "this is strain"
-         do i = 1, size(strain,1)
-            write(6,'(20G12.4)')  strain(i,:)
-         end do
-c~ !       Print the Delta_Strain in .dat file.         
-         write(6,*) "this is Deltastrain"
-         do i = 1, size(Deltastrain,1)
-            write(6,'(20G12.4)')  Deltastrain(i,:)
-         end do
+c~          write(6,*) "this is strain"
+c~          do i = 1, size(strain,1)
+c~             write(6,'(20G12.4)')  strain(i,:)
+c~          end do
+!       Print the Delta_Strain in .dat file.         
+c~          write(6,*) "this is Deltastrain"
+c~          do i = 1, size(Deltastrain,1)
+c~             write(6,'(20G12.4)')  Deltastrain(i,:)
+c~          end do
 c
 c
 !       relaxedstrain = 0.d0
@@ -494,10 +494,10 @@ c
          end do
 c
 !       Print the relaxedstrain in .dat file.
-	     write(6,*) "this is relaxedstrain"
-         do i = 1, size(relaxedstrain,1)
-            write(6,'(20G12.4)')  relaxedstrain(i,:)
-         end do
+c~ 	     write(6,*) "this is relaxedstrain"
+c~          do i = 1, size(relaxedstrain,1)
+c~             write(6,'(20G12.4)')  relaxedstrain(i,:)
+c~          end do
 c
 c
 !       relaxedstraingradient = 0.d0
@@ -520,15 +520,15 @@ c~             write(6,*) relaxed_strain(i)
          end do
 c
 !       Print the relaxedstraingradient in .dat file.
-         write(6,*) "this is relaxedstraingradient"
-         do i = 1, size(relaxedstraingradient,1)
-            write(6,'(20G12.4)')  relaxedstraingradient(i,:)
-         end do
-!       Print the delta_relaxedstraingradient in .dat file.         
-         write(6,*) "this is delta_relaxedstraingradient"
-         do i = 1, size(delta_relaxedstraingradient,1)
-            write(6,'(20G12.4)')  delta_relaxedstraingradient(i,:)
-         end do
+c~          write(6,*) "this is relaxedstraingradient"
+c~          do i = 1, size(relaxedstraingradient,1)
+c~             write(6,'(20G12.4)')  relaxedstraingradient(i,:)
+c~          end do
+c~ !       Print the delta_relaxedstraingradient in .dat file.         
+c~          write(6,*) "this is delta_relaxedstraingradient"
+c~          do i = 1, size(delta_relaxedstraingradient,1)
+c~             write(6,'(20G12.4)')  delta_relaxedstraingradient(i,:)
+c~          end do
 c
 c         
          !Langrangemulti = 0.d0
@@ -545,17 +545,14 @@ c~          do i = 1, size(Langrangemulti,1)
 c~             write(6,'(20G12.4)')  Langrangemulti(i,:)
 c~          end do
 c***********************************************************************
-*          write(6,*) "this is lemda and mue"	
-*          write(6,*) lemda
-*          write(6,*) mue
-*         write(6,*) "this is Deltastrain_1"
-*         do i = 1, size(Deltastrain,1)
-*            write(6,'(20G12.4)')  Deltastrain(i,:)
-*         end do
 !       call the KUMAT to find the state variables Sigma and Tau
 !       and also get U_psilon and Lambda from KUMAT as output.
+c
+c
          call KUMAT(Sigma,Tau,U_psilon,Lambda,kintk,lemda,mue,
      1        micro_length,strain,relaxedstraingradient)
+c
+c     
 !       Print the State variable Sigma in .dat file.     
 *         write(6,*) "this is Sigma"
 *         write(6,*) Sigma(:,1)
@@ -568,51 +565,26 @@ c***********************************************************************
 *         do i = 1, size(Tau,1)
 *            write(6,'(20G12.4)')  Tau(i,:)
 *         end do
-          write(6,*) "this is Upsi_matrix"
-          do i = 1, size(U_psilon,1)
-            write(6,'(20G12.4)')  U_psilon(i,:)
-          end do
-          write(6,*) "this is lamda_matrix"
-          do i = 1, size(Lambda,1)
-            write(6,'(20G12.4)')  Lambda(i,:)
-          end do          
+c~           write(6,*) "this is Upsi_matrix"
+c~           do i = 1, size(U_psilon,1)
+c~             write(6,'(20G12.4)')  U_psilon(i,:)
+c~           end do
+c~           write(6,*) "this is lamda_matrix"
+c~           do i = 1, size(Lambda,1)
+c~             write(6,'(20G12.4)')  Lambda(i,:)
+c~           end do          
 c***********************************************************************
 c
 !       store state variables Sigma and Tau in Svars vector. :
-c~          do i = 1, 3
-c~             svars(i+(kintk-1)*9) = Sigma(i,kintk)
-c~          end do
-c~          do i = 4, 9
-c~             svars(i+(kintk-1)*9) = Tau(i-3,kintk)
-c~          end do
-c~ !       Print the State variable vector in .dat file.         
-c~          write(6,*) "this is state vars"
-c~          do i = 1, 9
-c~             write(6,'(20G12.4)')  svars(i+(kintk-1)*9)
-c~          end do
 c
          do i = 1, 6
-           svars(i+(kintk-1)*18) = Sigma(i,kintk)
+           svars(i+(kintk-1)*12) = Sigma(i,kintk)
          end do
          do i = 7, 12
-           svars(i+(kintk-1)*18) = strain(i-6,kintk)
+           svars(i+(kintk-1)*12) = strain(i-6,kintk)
          end do
 c     
-c~          do i = 1, 6
-c~             svars(i+(kintk-1)*22) = Sigma(i,kintk)
-c~          end do
-c~          do i = 4, 9
-c~             svars(i+(kintk-1)*22) = Tau(i-3,kintk)
-c~          end do
-c~          do i = 10, 13
-c~             svars(i+(kintk-1)*22) = relaxedstrain(i-9,kintk)
-c~          end do
-c~          do i = 14, 19
-c~             svars(i+(kintk-1)*22) = relaxedstraingradient(i-13,kintk)
-c~          end do
-c~          do i = 20, 22
-c~             svars(i+(kintk-1)*22) = strain(i-19,kintk)
-c~          end do
+c
 !       Print the State variable vector in .dat file.         
 c~          write(6,*) "this is state vars"
 c~          do i = 1, 24
@@ -621,14 +593,6 @@ c~          end do
 c***********************************************************************
 !       Find the Element Stiffness Matrices:
 c
-*         write(6,*) "Jacobian of displacement_1"
-*         write(6,*) djac       
-*         write(6,*) "Gausss weight"
-*         write(6,*) Gauss_weight(kintk) 
-*         write(6,*) "T_Bmatrix"
-*         do i = 1, size(T_Bmatrix,1)
-*            write(6,'(20G12.4)')  T_Bmatrix(i,:)
-*         end do 
 !       Find the UU_stiffness matrix - dimension(18*18)
          do i = 1, 81
           do j = 1, 81
@@ -700,21 +664,6 @@ c~             write(6,'(20G12.4)')  stiffness_psirho(i,:)
 c~          end do
 c
 c
-!       Find the Mass_U matrix - dimension(18*18)
-c~          T_Nmatrix = Transpose(Nmatrix)
-c~          do i = 1, 18
-c~           do j = 1, 18
-c~            do k = 1, 2
-c~                Mass_U(i,j) = Mass_U(i,j) + Density*T_Nmatrix(i,k)
-c~      1                       *T_Nmatrix(j,k)*djac*Gauss_weight(kintk)
-c~            end do
-c~           end do
-c~          end do
-!       Print the Mass_U matrix in .dat file.          
-*         write(6,*) "this is Mass_U"
-*         do i = 1, size(Mass_U,1)
-*            write(6,'(20G12.4)')  Mass_U(i,:)
-*         end do
 c***********************************************************************
 c
 !       Find the internal force vectors : 
@@ -734,10 +683,10 @@ c
             end do
          end do
 !       Print the F_vactor in .dat file.         
-         write(6,*) "F_vector"
-         do i = 1, 18
-            write(6,'(20G12.4)')  F_vector(i)
-         end do
+c~          write(6,*) "F_vector"
+c~          do i = 1, 81
+c~             write(6,'(20G12.4)')  F_vector(i)
+c~          end do
 c
 c
 !       Find the R_vector which includes the internal forces due to
@@ -753,10 +702,10 @@ c
             end do
          end do
 !       Print the R_vactor in .dat file.         
-         write(6,*) "R_vector"
-         do i = 1, 16
-            write(6,'(20G12.4)')  R_vector(i)
-         end do
+c~          write(6,*) "R_vector"
+c~          do i = 1, 72
+c~             write(6,'(20G12.4)')  R_vector(i)
+c~          end do
 c
 c
 !       Find the S_vector which includes the internal forces due to
@@ -769,10 +718,10 @@ c
             end do
          end do
 !       Print the S_vactor in .dat file.         
-         write(6,*) "S_vector"
-         do i = 1, 4
-            write(6,'(20G12.4)')  S_vector(i)
-         end do
+c~          write(6,*) "S_vector"
+c~          do i = 1, 9
+c~             write(6,'(20G12.4)')  S_vector(i)
+c~          end do
 c
       end do 
 !       loop over integration points is end.
@@ -800,42 +749,42 @@ C           ___                              ____
 !          |___                              ____|
 c
 c
-!     amat(1:18,1:18) =  stiffness_UU(1:18,1:18)     
+!     amat(1:81,1:81) =  stiffness_UU(1:81,1:81)     
       do i = 1, 81
          do j = 1, 81
             amatrx(i,j) = amatrx(i,j) + stiffness_UU(i,j)
          end do
       end do
 c
-!     amat(19:34,19:34) =  stiffness_PsiPsi(1:16,1:16)
+!     amat(82:153,82:153) =  stiffness_PsiPsi(1:72,1:72)
       do i = 82, 153
          do j = 82, 153
             amatrx(i,j) = amatrx(i,j) + stiffness_PsiPsi(i-81,j-81)   
          end do
       end do
 c
-!     amat(35:38,19:34) =  tra_stiffness_psirho(1:4,1:16)
+!     amat(154:162,82:153) =  tra_stiffness_psirho(1:9,1:72)
       do i = 154, 162
          do j = 82, 153 
             amatrx(i,j) = amatrx(i,j) + tra_stiffness_psirho(i-153,j-81)
          end do
       end do
 c
-!     amat(35:38,1:18) =  tra_stiffness_Urho(1:4,1:18)
+!     amat(154:162,1:81) =  tra_stiffness_Urho(1:9,1:81)
       do i = 154, 162
          do j = 1, 81
             amatrx(i,j) = amatrx(i,j) - tra_stiffness_Urho(i-153,j)
          end do
       end do
 c
-!     amat(1:18,35:38) =  stiffness_Urho(1:18,1:4)
+!     amat(1:81,154:162) =  stiffness_Urho(1:81,1:9)
       do i = 1, 81
          do j = 154, 162
             amatrx(i,j) = amatrx(i,j) - stiffness_Urho(i,j-153)
          end do
       end do
 c
-!     amat(19:34,35:38) =  stiffness_psirho(1:16,1:4)
+!     amat(82:153,154:162) =  stiffness_psirho(1:72,1:9)
       do i = 82,153
          do j = 154,162
             amatrx(i,j) = amatrx(i,j) + stiffness_psirho(i-81,j-153)
@@ -843,32 +792,12 @@ c
       end do
 c
 c
-!     Initialize the mass matrix.
-c~       do i = 1, 162
-c~             Mass_matrix(i,i) = 1.d0
-c~       end do
 c
-!     assign the amat to the amatrx which is common matrix for
-!     stiffness.
-!      do i = 1, 38
-!         do j = 1, 38
-!            amatrx(i,j) = amatrx(i,j) + amat(i,j)
-!         end do
-!      end do
-c
-!     assign the 0 value to the diagonal elements(35,36,37,38) of amat.
+!     assign the 0 value to the diagonal elements of amatrx.
       do i=153, 162
 	     amatrx(i,i) = 1.0e-10
       end do
 c
-!     if lflags(3) = 1 then Mass_matrix is assigned to the amatrx.
-!      if(lflags(3) .eq. 1) then
-!            do i = 1, 38
-!                do j = 1, 38
-!                   amatrx(i,j) = Mass_matrix(i,j)
-!                end do
-!            end do
-!      endif
 c      
 !     print the amatrx into the .dat file.      
       write(6,*) "amatrx"
@@ -879,21 +808,21 @@ c
 c
 c
 !     Assemble the RHS matrix.
-!     rhs(1:18) = F_vector(1:18)
+!     rhs(1:81) = F_vector(1:81)
       do i = 1, 81
-         rhs(i) = rhs(i) + F_vector(i)
+         rhs(i) = rhs(i) - F_vector(i)
       end do
 c
 c
-!     rhs(19:34) = R_vector(1:16)
+!     rhs(82:153) = R_vector(1:72)
       do i = 82, 153
-         rhs(i) = rhs(i) + R_vector(i-81)
+         rhs(i) = rhs(i) - R_vector(i-81)
       end do
 c
 c
-!     rhs(35:38) = S_vector(1:4)
+!     rhs(154:162) = S_vector(1:9)
       do i = 154, 162
-         rhs(i) = rhs(i) + S_vector(i-153)
+         rhs(i) = rhs(i) - S_vector(i-153)
       end do
 c
 c
@@ -1363,9 +1292,9 @@ c
       D_matrix(10,10) = 0.25d0*mue*micro_length*micro_length
       D_matrix(13,13) = 0.25d0*mue*micro_length*micro_length
       D_matrix(14,14) = 0.25d0*mue*micro_length*micro_length
-      D_matrix(16,16) = 1.d0*mue*micro_length*micro_length
-      D_matrix(17,17) = 1.d0*mue*micro_length*micro_length
-      D_matrix(18,18) = 1.d0*mue*micro_length*micro_length
+      D_matrix(16,16) = 2.d0*mue*micro_length*micro_length
+      D_matrix(17,17) = 2.d0*mue*micro_length*micro_length
+      D_matrix(18,18) = 2.d0*mue*micro_length*micro_length
 c      
       write(6,*) "this is D_matrix in UMAT"
       do i = 1, size(D_matrix,1)
@@ -1399,139 +1328,6 @@ c~             Lambda(i,j) = D_matrix(i,j)
       return 
       end subroutine KUMAT
 c***********************************************************************
-c***********************************************************************
-      subroutine KDLOAD(rhs_k,NDLOAD,coords,mdload,ADLMAG,jdltyp)
-c      
-      double precision :: XI,Weight,Knode,KAssembly,BF_gam,KTYP,Bxi,
-     1  Bweight,BJ_S,BJ_X,BJ_Y,BN_gam,BN_gam_xi,KNODE_S,KRHS,
-     2  ADLMAG,K,rhs_k
-c      
-      dimension XI(2),Weight(2),Knode(3,4),KAssembly(3,8),BF_gam(3),
-     1  BN_gam(3,4),BN_gam_xi(3,4),coords(2,9),
-     2  ADLMAG(mdload,1),jdltyp(mdload,1),rhs_k(16)
-c      
-        XI(1) = -(1.d0/3.d0)**0.5
-        XI(2) =  (1.d0/3.d0)**0.5
-c      
-*        write(*,*) "rhs_inp"
-*        write(*,*) rhs
-        Weight(1) = 1
-        Weight(2) = 1
-c
-        Knode(1,1) = 1
-        Knode(2,1) = 2
-        Knode(3,1) = 5
-        Knode(1,2) = 2
-        Knode(2,2) = 3
-        Knode(3,2) = 6
-        Knode(1,3) = 3
-        Knode(2,3) = 4
-        Knode(3,3) = 7
-        Knode(1,4) = 1
-        Knode(2,4) = 4
-        Knode(3,4) = 8
-c      
-        KAssembly(1,1) = 1
-        KAssembly(2,1) = 3
-        KAssembly(3,1) = 9
-        KAssembly(1,2) = 3
-        KAssembly(2,2) = 5
-        KAssembly(3,2) = 11
-        KAssembly(1,3) = 5
-        KAssembly(2,3) = 7
-        KAssembly(3,3) = 13
-        KAssembly(1,4) = 7
-        KAssembly(2,4) = 1
-        KAssembly(3,4) = 15
-        KAssembly(1,5) = 2
-        KAssembly(2,5) = 4
-        KAssembly(3,5) = 10
-        KAssembly(1,6) = 4
-        KAssembly(2,6) = 6
-        KAssembly(3,6) = 12
-        KAssembly(1,7) = 6
-        KAssembly(2,7) = 8
-        KAssembly(3,7) = 14
-        KAssembly(1,8) = 8
-        KAssembly(2,8) = 2
-        KAssembly(3,8) = 16
-c
-c
-c
-c       do KLOAD = 1, NDLOAD
-        KLOAD = NDLOAD 
-c
-        do i = 1, 3
-              BF_gam(i) = 0.d0
-        end do  
-        JDL = JDLTYP(1,1)
-c
-        if (JDL .GE. 5) then
-          KTYP = JDL - 4
-        end if
-c
-        KTYP = JDL
-c
-        do kgauss = 1, 2
-c          
-          Bxi = XI(kgauss)
-          Bweight = Weight(kgauss)
-c
-          BJ_S = 0.d0
-          BJ_X = 0.d0
-          BJ_Y = 0.d0
-c            
-          BN_gam(1,1) = 0.5d0*Bxi*(Bxi-1.d0)
-          BN_gam(2,1) = 0.5d0*Bxi*(Bxi+1.d0)
-          BN_gam(3,1) = 1.d0-Bxi**2
-          BN_gam(1,2) = 0.5d0*Bxi*(Bxi-1.d0)
-          BN_gam(2,2) = 0.5d0*Bxi*(Bxi+1.d0)
-          BN_gam(3,2) = 1.d0-Bxi**2
-          BN_gam(1,3) = 0.5d0*Bxi*(Bxi+1.d0)
-          BN_gam(2,3) = 0.5d0*Bxi*(Bxi-1.d0)
-          BN_gam(3,3) = 1.d0-Bxi**2
-          BN_gam(1,4) = 0.5d0*Bxi*(Bxi+1.d0)
-          BN_gam(2,4) = 0.5d0*Bxi*(Bxi-1.d0)
-          BN_gam(3,4) = 1.d0-Bxi**2
-c            
-          BN_gam_xi(1,1) = Bxi-0.5d0            
-          BN_gam_xi(2,1) = Bxi+0.5d0 
-          BN_gam_xi(3,1) = -2.d0*Bxi
-          BN_gam_xi(1,2) = Bxi-0.5d0
-          BN_gam_xi(2,2) = Bxi+0.5d0
-          BN_gam_xi(3,2) = -2.d0*Bxi
-          BN_gam_xi(1,3) = Bxi+0.5d0
-          BN_gam_xi(2,3) = Bxi-0.5d0
-          BN_gam_xi(3,3) = -2.d0*Bxi
-          BN_gam_xi(1,4) = Bxi+0.5d0
-          BN_gam_xi(2,4) = Bxi-0.5d0
-          BN_gam_xi(3,4) = -2.d0*Bxi
-c
-          do i = 1, 3       
-            KNODE_S = Knode(i,KTYP)
-            BJ_X = BJ_X  + BN_gam_xi(i,KTYP)*coords(1,KNODE_S)
-            BJ_Y = BJ_Y  + BN_gam_xi(i,KTYP)*coords(2,KNODE_S)
-            BJ_S = (BJ_X**2+BJ_Y**2)**0.5
-          end do           
-c
-          do i = 1, 3
-            BF_gam(i) = BF_gam(i) + BN_gam(i,KTYP)*ADLMAG(KLOAD,1)
-     1                    *BJ_S*Bweight
-          end do
-c
-        end do
-c      
-        do i = 1, 3
-  	      K = JDLTYP(1,1)
-	      KRHS = KAssembly(i,K)
-	      rhs_k(KRHS) = rhs_k(KRHS) + BF_gam(i)
-        end do
-        write(*,*) "rhs_k"
-        write(*,*) rhs_k
-c
-c         
-      return 
-      end subroutine KDLOAD
-************************************************************************
+
 
 

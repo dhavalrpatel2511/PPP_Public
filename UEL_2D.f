@@ -46,6 +46,14 @@ c
       parameter (ndim=2, nnodemax=9, ninpt=9, nsvint=22)
 c
 c
+!    Strate Variables :
+c~      Stresses (Sigma)            = 3
+c~      Higher order Stresses (Tau) = 6
+c~      Relaxed Strain              = 4
+c~      Relaxed Strain Gradient     = 6
+c~      Strain                      = 3
+c~      Total :                     = 22
+c
 c    ndim      ... number of spatial dimensions
 c    nnodemax  ... number of nodes per element
 c    ninpt     ... number of integration points
@@ -294,13 +302,13 @@ c
 c 
 !       Evaluate Jacobian of displacement and psi shape function matrix
 c
-         call jacobian_UU(djac,xjaci,jelem,ndim,nnode,coords,dNd_xi,
+         call jacobian_UU(djac,xjaci,jelem,coords,dNd_xi,
      1        pnewdt)
 *         write(6,*) "Jacobian of displacement"
 *         write(6,*) djac         
 *         write(6,*) xjaci
 c                  
-         call jacobian_psipsi(djac_psi,xjaci_psi,jelem,ndim,nnode,
+         call jacobian_psipsi(djac_psi,xjaci_psi,jelem,
      1        coords,dNd_PSI,pnewdt)
 *         write(6,*) "Jacobian of PSI"
 *         write(6,*) djac_psi
@@ -873,19 +881,19 @@ c
 !     Assemble the RHS matrix.
 !     rhs(1:18) = F_vector(1:18)
       do i = 1, 18
-         rhs(i) = rhs(i) + F_vector(i)
+         rhs(i) = rhs(i) - F_vector(i)
       end do
 c
 c
 !     rhs(19:34) = R_vector(1:16)
       do i = 19, 34
-         rhs(i) = rhs(i) + R_vector(i-18)
+         rhs(i) = rhs(i) - R_vector(i-18)
       end do
 c
 c
 !     rhs(35:38) = S_vector(1:4)
       do i = 35, 38
-         rhs(i) = rhs(i) + S_vector(i-34)
+         rhs(i) = rhs(i) - S_vector(i-34)
       end do
 c
 c
@@ -1043,7 +1051,7 @@ c
 c***********************************************************************
 c
 c***********************************************************************
-      subroutine jacobian_UU(djac,xjaci,jelem,ndim,nnode,coords,dNd_xi,
+      subroutine jacobian_UU(djac,xjaci,jelem,coords,dNd_xi,
      1        pnewdt)
 c
 c     Notation : xjac  - Jacobian Matrix 
@@ -1057,8 +1065,8 @@ c
 c
 c     -------Initialization of xjac and xjaci---------
 c
-      do i = 1, ndim
-        do j = 1, ndim
+      do i = 1, 2
+        do j = 1, 2
           xjac(i,j)  = 0.d0
           xjaci(i,j) = 0.d0
         end do
@@ -1066,12 +1074,10 @@ c
 c
 c    --------Define Jacobian Matrix xjac----------
 c
-      do inod= 1, 9
-         do idim = 1, 2
-           do jdim = 1, 2
-              xjac(jdim,idim) = xjac(jdim,idim)
-     1                              +dNd_xi(jdim,inod)*coords(idim,inod)
-*              write(*,*) xjac(jdim,idim)     
+      do i= 1, 9
+         do j = 1, 2
+           do k = 1, 2
+              xjac(j,k) = xjac(j,k)+dNd_xi(j,i)*coords(k,i)
            end do
          end do 
       end do
@@ -1103,7 +1109,7 @@ c
 c***********************************************************************
 c
 c***********************************************************************
-      subroutine jacobian_psipsi(djac_psi,xjaci_psi,jelem,ndim,nnode,
+      subroutine jacobian_psipsi(djac_psi,xjaci_psi,jelem,
      1        coords,dNd_PSI,pnewdt)
 c
 c     Notation : xjac_psi  - Jacobian Matrix 
@@ -1112,15 +1118,15 @@ c              : xjaci_psi - Inverse of Jacobian matrix
 c                         
       include 'aba_param.inc'
 c
-      dimension xjac_psi(2,2),xjaci_psi(ndim,2),coords(2,9),
-     1 dNd_PSI(ndim,4)
+      dimension xjac_psi(2,2),xjaci_psi(2,2),coords(2,9),
+     1 dNd_PSI(2,4)
       double precision :: xjac_psi,xjaci_psi,dNd_PSI,djac_psi,coords
       djac_psi = 0.d0
 c
 c     -------Initialization of xjac_psi and xjaci_psi---------
 c
-      do i = 1, ndim
-        do j = 1, ndim
+      do i = 1, 2
+        do j = 1, 2
           xjac_psi(i,j)  = 0.d0
           xjaci_psi(i,j) = 0.d0
         end do
@@ -1128,11 +1134,10 @@ c
 c
 c    --------Define Jacobian Matrix xjac_psi----------
 c
-      do inod= 1, 4
-         do idim = 1, ndim
-           do jdim = 1, ndim
-             xjac_psi(jdim,idim) = xjac_psi(jdim,idim) 
-     1                             +dNd_PSI(jdim,inod)*coords(idim,inod)                   
+      do i= 1, 4
+         do j = 1, 2
+           do k = 1, 2
+             xjac_psi(j,k) = xjac_psi(j,k)+dNd_PSI(j,i)*coords(k,i)                                                 
            end do
          end do 
       end do
@@ -1168,7 +1173,7 @@ c
 c  
 c  ----------Initialization of the Bmatrix---------------
 c  
-         do i = 1, nnode*ndim
+         do i = 1, 18
             bmat_u(i) = 0.d0
          end do
 c
@@ -1178,9 +1183,9 @@ c
          do i = 1, 9
           do j = 1, 2
            do k = 1, 2
-            m = k + (i - 1)*2
+             m = k + (i - 1)*2
 c            
-            bmat_u(m)=bmat_u(m)+xjaci(k,j)*dNd_xi(j,i)
+             bmat_u(m)=bmat_u(m)+xjaci(k,j)*dNd_xi(j,i)
            end do
           end do
          end do 
@@ -1200,7 +1205,7 @@ c     Notation: bmat_psi(i) ....dN1/dx, dN1/dy, dN2/dx, dN2/dy...
 c  
 c  ----------Initialization of the Bmatrix---------------
 c   
-         do i = 1, 4*ndim
+         do i = 1, 8
                bmat_psi(i) = 0.d0
          end do
 c           
@@ -1210,9 +1215,9 @@ c
          do i = 1, 4
           do j = 1, 2
            do k = 1, 2
-            n = k + (i - 1)*2
+             n = k + (i - 1)*2
 c            
-            bmat_psi(n)=bmat_psi(n)+xjaci_psi(k,j)*dNd_PSI(j,i)
+             bmat_psi(n) = bmat_psi(n) + xjaci_psi(k,j)*dNd_PSI(j,i)
            end do
           end do
          end do 
@@ -1238,6 +1243,11 @@ c
       C_matrix = 0.d0
       D_matrix = 0.d0
 c
+      do i = 1, 3
+         do j = 1, 3
+            C_matrix(j,i) = 0.d0
+         end do
+      end do
 c
 *      write(6,*) "this is lemda and mue"	
 *      write(6,*) lemda
@@ -1260,6 +1270,11 @@ c
       write(6,*) "this is C_matrix"
       do i = 1, size(C_matrix,1)
         write(6,'(20G12.4)')  C_matrix(i,:)
+      end do
+      do i = 1, 6
+         do j = 1, 6
+            D_matrix(j,i) = 0.d0
+         end do
       end do
 c
 c    ------------Higher order Elastic Matrix----------------
